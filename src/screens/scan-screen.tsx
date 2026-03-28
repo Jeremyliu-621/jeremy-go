@@ -150,12 +150,13 @@ export default function ScanScreen() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-[var(--color-navy)]"
+            className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-6 bg-[var(--color-navy)]"
           >
-            <p className="px-8 text-center text-sm font-medium text-white/70">
-              Camera access is required to scan.
-              <br />
-              Please enable it in your browser settings.
+            <p
+              className="px-8 text-center text-white/70"
+              style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, lineHeight: "2" }}
+            >
+              Camera access is required to scan. Please enable it in your browser settings.
             </p>
           </motion.div>
         )}
@@ -167,7 +168,12 @@ export default function ScanScreen() {
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-[var(--color-navy)]"
           >
-            <p className="text-sm font-medium text-red-400">{error}</p>
+            <p
+              className="text-red-400"
+              style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9 }}
+            >
+              {error}
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -183,7 +189,10 @@ export default function ScanScreen() {
             style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
           >
             <PokeballSpinner size={40} />
-            <p className="text-xs font-medium text-white/60">
+            <p
+              className="text-white/60"
+              style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8 }}
+            >
               Initializing scanner...
             </p>
           </motion.div>
@@ -213,13 +222,13 @@ export default function ScanScreen() {
             <span
               style={{
                 position: "absolute",
-                top: -22,
+                top: -24,
                 left: 0,
-                fontSize: 11,
-                fontWeight: 700,
-                color: "rgba(255,255,255,0.8)",
-                background: "rgba(0,0,0,0.5)",
-                padding: "2px 6px",
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: 8,
+                color: "#00ff88",
+                background: "rgba(0,0,0,0.6)",
+                padding: "3px 6px",
                 borderRadius: 4,
                 whiteSpace: "nowrap",
               }}
@@ -245,10 +254,10 @@ export default function ScanScreen() {
               left: 0,
               right: 0,
               textAlign: "center",
-              fontSize: "13px",
-              fontWeight: 500,
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: "10px",
               color: "rgba(255,255,255,0.5)",
-              letterSpacing: "0.02em",
+              textShadow: "1px 1px 0 rgba(0,0,0,0.6)",
             }}
           >
             Point at someone to capture them
@@ -263,15 +272,17 @@ export default function ScanScreen() {
         transition={{ delay: 0.3 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => navigate("/")}
-        className="absolute z-10 rounded-full px-5 py-2 text-sm font-bold text-white backdrop-blur-sm"
+        className="absolute z-10 rounded-lg px-4 py-2 text-white backdrop-blur-sm"
         style={{
           bottom: "max(28px, env(safe-area-inset-bottom, 16px))",
           left: "16px",
+          fontFamily: "'Press Start 2P', monospace",
+          fontSize: 9,
           background: "rgba(255,255,255,0.15)",
-          border: "1px solid rgba(255,255,255,0.2)",
+          border: "2px solid rgba(255,255,255,0.2)",
         }}
       >
-        Home
+        HOME
       </motion.button>
 
       {/* Detection pill */}

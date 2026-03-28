@@ -34,17 +34,20 @@ export default function NameCpPill({ friend, phase }: Props) {
           </svg>
 
           <span
-            className="text-sm font-bold text-white"
-            style={{ letterSpacing: "0.01em" }}
+            className="text-white"
+            style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10 }}
           >
             {friend.username || "???"}
           </span>
 
-          <span className="text-xs font-medium text-white/40">/</span>
+          <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: "rgba(255,255,255,0.4)" }}>/</span>
 
           <span
-            className="text-sm font-extrabold"
-            style={{ color: "#FFCB05" }}
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: 10,
+              color: "#FFCB05",
+            }}
           >
             CP {friend.cp}
           </span>

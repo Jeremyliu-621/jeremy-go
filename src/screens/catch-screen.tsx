@@ -158,7 +158,10 @@ export default function CatchScreen() {
               border: "1px solid rgba(255,255,255,0.1)",
             }}
           >
-            <p className="whitespace-nowrap text-center text-sm font-bold text-white">
+            <p
+              className="whitespace-nowrap text-center text-white"
+              style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10 }}
+            >
               {message}
             </p>
           </motion.div>
