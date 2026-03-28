@@ -1,17 +1,16 @@
-import { useAuth } from "../contexts/auth-context";
-
 interface Props {
   variant?: "scan" | "catch";
   onRunAway?: () => void;
 }
 
-export default function TopBar({ variant = "scan", onRunAway }: Props) {
-  const { user } = useAuth();
+const PX = "'Press Start 2P', monospace";
 
+export default function TopBar({ variant = "scan", onRunAway }: Props) {
   return (
     <div
       className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
       style={{
+        fontFamily: PX,
         paddingTop: "env(safe-area-inset-top, 12px)",
         height: "calc(env(safe-area-inset-top, 12px) + 56px)",
         background:
@@ -29,10 +28,13 @@ export default function TopBar({ variant = "scan", onRunAway }: Props) {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
-          <span className="text-xs font-semibold text-white/90">Run</span>
+          <span className="text-white/90" style={{ fontSize: 9 }}>RUN</span>
         </button>
       ) : (
-        <span className="text-base font-extrabold tracking-wide text-white/90 drop-shadow">
+        <span
+          className="text-white/90 drop-shadow"
+          style={{ fontSize: 12 }}
+        >
           JEREMY GO!
         </span>
       )}

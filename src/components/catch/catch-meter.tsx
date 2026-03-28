@@ -62,14 +62,14 @@ export default function CatchMeter({ phase, accuracy, catchRate }: Props) {
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between gap-4">
               <span
-                className="text-xs font-bold uppercase tracking-wide"
-                style={{ color: barColor }}
+                className="uppercase"
+                style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, color: barColor }}
               >
                 {label}
               </span>
               <span
-                className="text-xs font-bold tabular-nums"
-                style={{ color: "rgba(255,255,255,0.7)" }}
+                className="tabular-nums"
+                style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, color: "rgba(255,255,255,0.7)" }}
               >
                 {percentage}%
               </span>

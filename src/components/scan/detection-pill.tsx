@@ -58,9 +58,8 @@ export default function DetectionPill({ face, onTap }: Props) {
 
             <span
               style={{
-                fontFamily: "'Poppins', sans-serif",
-                fontWeight: 600,
-                fontSize: "15px",
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: "10px",
                 color: "white",
                 letterSpacing: "0.01em",
                 whiteSpace: "nowrap",
