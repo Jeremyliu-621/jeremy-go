@@ -28,20 +28,24 @@ export default function WobbleBall({
     if (phase !== "wobbling" || hasRun.current) return;
     hasRun.current = true;
 
-    (async () => {
-      const amplitudes = [28, 20, 12];
-      for (let i = 0; i < wobbleCount; i++) {
-        const amp = amplitudes[i] ?? 10;
+    const WOBBLE_MS = 650;
+    const GAP_MS = 300;
+    const amplitudes = [28, 20, 12];
+
+    for (let i = 0; i < wobbleCount; i++) {
+      const delay = i * (WOBBLE_MS + GAP_MS);
+      const amp = amplitudes[i] ?? 10;
+      setTimeout(() => {
         if (navigator.vibrate) navigator.vibrate(25);
-        await controls.start({
+        controls.start({
           rotate: [0, amp, -amp * 0.8, amp * 0.5, -amp * 0.3, 0],
           y: [0, -4, 0, -3, 0],
-          transition: { duration: 0.65, ease: "easeInOut" },
+          transition: { duration: WOBBLE_MS / 1000, ease: "easeInOut" },
         });
       }, delay);
     }
 
-    const totalTime = wobbleCount * (wobbleDuration + pauseBetween);
+    const totalTime = wobbleCount * (WOBBLE_MS + GAP_MS);
     setTimeout(() => onWobbleComplete(), totalTime);
   }, [phase, wobbleCount, controls, onWobbleComplete]);
 
