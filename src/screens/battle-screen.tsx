@@ -12,6 +12,7 @@ import {
   type BattlePokemon,
   type BattlePhase,
 } from "../lib/battle";
+import { useAudio } from "../contexts/audio-context";
 
 interface TurnResult {
   attackerName: string;
@@ -24,6 +25,7 @@ interface TurnResult {
 export default function BattleScreen() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { playDamage } = useAudio();
   const state = location.state as {
     player?: CaughtFriend;
     opponent?: CaughtFriend;
@@ -54,6 +56,7 @@ export default function BattleScreen() {
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   const animateHit = (target: "player" | "opponent") => {
+    playDamage();
     if (target === "player") {
       setPlayerShake(true);
       setTimeout(() => setPlayerShake(false), 400);
@@ -191,18 +194,24 @@ export default function BattleScreen() {
   const playerLevel = Math.max(1, Math.floor(player.friend.cp / 20));
   const opponentLevel = Math.max(1, Math.floor(opponent.friend.cp / 20));
 
+  const pixelFont = "'Press Start 2P', monospace";
+
   return (
-    <div className="fixed inset-0 flex flex-col bg-[var(--color-navy)]">
+    <div className="fixed inset-0 flex flex-col" style={{ fontFamily: pixelFont }}>
       {/* === BATTLEFIELD (top ~60%) === */}
       <div
-        className="relative flex-1"
-        style={{
-          background: "linear-gradient(180deg, #2a4a2a 0%, #4a7a3a 40%, #6a9a4a 70%, #8ab85a 100%)",
-          minHeight: 0,
-        }}
+        className="relative flex-1 overflow-hidden"
+        style={{ minHeight: 0 }}
       >
-        {/* Opponent (top-right) */}
-        <div className="absolute top-3 left-4 right-4 flex items-start justify-between">
+        <img
+          src="/battlearena.jpg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          draggable={false}
+        />
+
+        {/* Opponent info box (top-left, like classic Pokemon) */}
+        <div className="absolute top-3 left-3 z-10">
           <OpponentInfoBox
             name={opponent.friend.username}
             level={opponentLevel}
@@ -210,24 +219,20 @@ export default function BattleScreen() {
             maxHp={opponent.maxHp}
             type={opponent.friend.primaryType}
           />
-          <motion.div
-            animate={opponentShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-            transition={{ duration: 0.4 }}
-            className="mt-4"
-          >
-            <PokemonSprite friend={opponent.friend} size={100} flipped />
-          </motion.div>
         </div>
 
-        {/* Player (bottom-left) */}
-        <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-          <motion.div
-            animate={playerShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-            transition={{ duration: 0.4 }}
-            className="mb-2"
-          >
-            <PokemonSprite friend={player.friend} size={110} />
-          </motion.div>
+        {/* Opponent sprite — on the far platform (upper-right) */}
+        <motion.div
+          animate={opponentShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+          transition={{ duration: 0.4 }}
+          className="absolute z-10"
+          style={{ top: "18%", right: "12%" }}
+        >
+          <PokemonSprite friend={opponent.friend} size={96} flipped />
+        </motion.div>
+
+        {/* Player info box (bottom-right, like classic Pokemon) */}
+        <div className="absolute right-3 bottom-3 z-10">
           <PlayerInfoBox
             name={player.friend.username}
             level={playerLevel}
@@ -236,12 +241,22 @@ export default function BattleScreen() {
             type={player.friend.primaryType}
           />
         </div>
+
+        {/* Player sprite — on the near platform (lower-left) */}
+        <motion.div
+          animate={playerShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+          transition={{ duration: 0.4 }}
+          className="absolute z-10"
+          style={{ bottom: "8%", left: "8%" }}
+        >
+          <PokemonSprite friend={player.friend} size={120} />
+        </motion.div>
       </div>
 
-      {/* === BOTTOM PANEL (~40%) === */}
+      {/* === BOTTOM PANEL (~38%) === */}
       <div
         className="flex shrink-0 flex-col"
-        style={{ height: "40%", minHeight: 160, background: "#f8f0d0" }}
+        style={{ height: "38%", minHeight: 150, background: "#f8f0d0" }}
       >
         {phase === "moves" ? (
           <MoveSelectPanel
@@ -258,8 +273,10 @@ export default function BattleScreen() {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/")}
-                className="rounded-lg px-8 py-3 text-lg font-black text-white"
+                className="rounded-lg px-6 py-3 text-white uppercase"
                 style={{
+                  fontFamily: pixelFont,
+                  fontSize: 11,
                   background: phase === "victory" ? "#4a9a3a" : "#C03028",
                 }}
               >
@@ -288,17 +305,26 @@ export default function BattleScreen() {
 
 /* ── Sub-components ── */
 
+const PX_FONT = "'Press Start 2P', monospace";
+
 function HpBar({ current, max }: { current: number; max: number }) {
   const pct = Math.max(0, (current / max) * 100);
   const color = pct > 50 ? "#4ade80" : pct > 20 ? "#facc15" : "#ef4444";
 
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-[10px] font-bold text-yellow-700">HP</span>
-      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-600/40">
+      <span
+        style={{ fontFamily: PX_FONT, fontSize: 7, color: "#c8a830" }}
+      >
+        HP
+      </span>
+      <div
+        className="h-[6px] flex-1 overflow-hidden"
+        style={{ background: "#3a3a3a", borderRadius: 1 }}
+      >
         <motion.div
-          className="h-full rounded-full"
-          style={{ backgroundColor: color }}
+          className="h-full"
+          style={{ backgroundColor: color, borderRadius: 1 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.5 }}
         />
@@ -321,13 +347,24 @@ function OpponentInfoBox({
 }) {
   return (
     <div
-      className="w-48 rounded-lg px-3 py-2"
-      style={{ background: "#f8f0d0", border: "2px solid #a08060" }}
+      className="w-44 px-3 py-2"
+      style={{
+        fontFamily: PX_FONT,
+        background: "linear-gradient(180deg, #f0e8c8 0%, #d8d0a8 100%)",
+        border: "3px solid #585858",
+        borderRadius: 6,
+        boxShadow: "2px 2px 0 #404040",
+      }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-sm font-black text-gray-800">{name}</span>
-        <span className="text-[10px] font-bold text-gray-500">
-          Lv.{level}
+        <span
+          className="truncate text-gray-900"
+          style={{ fontSize: 10, maxWidth: 90 }}
+        >
+          {name}
+        </span>
+        <span style={{ fontSize: 8, color: "#606060" }}>
+          Lv{level}
         </span>
       </div>
       <HpBar current={currentHp} max={maxHp} />
@@ -349,17 +386,31 @@ function PlayerInfoBox({
 }) {
   return (
     <div
-      className="w-52 rounded-lg px-3 py-2"
-      style={{ background: "#f8f0d0", border: "2px solid #a08060" }}
+      className="w-48 px-3 py-2"
+      style={{
+        fontFamily: PX_FONT,
+        background: "linear-gradient(180deg, #f0e8c8 0%, #d8d0a8 100%)",
+        border: "3px solid #585858",
+        borderRadius: 6,
+        boxShadow: "2px 2px 0 #404040",
+      }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-sm font-black text-gray-800">{name}</span>
-        <span className="text-[10px] font-bold text-gray-500">
-          Lv.{level}
+        <span
+          className="truncate text-gray-900"
+          style={{ fontSize: 10, maxWidth: 100 }}
+        >
+          {name}
+        </span>
+        <span style={{ fontSize: 8, color: "#606060" }}>
+          Lv{level}
         </span>
       </div>
       <HpBar current={currentHp} max={maxHp} />
-      <p className="mt-0.5 text-right text-xs font-bold text-gray-600">
+      <p
+        className="mt-0.5 text-right"
+        style={{ fontSize: 8, color: "#505050" }}
+      >
         {currentHp}/{maxHp}
       </p>
     </div>
@@ -378,12 +429,12 @@ function PokemonSprite({
   const typeColor = TYPE_COLORS[friend.primaryType];
   return (
     <div
-      className="overflow-hidden rounded-full border-3"
+      className="overflow-hidden rounded-full"
       style={{
         width: size,
         height: size,
-        borderColor: typeColor,
-        boxShadow: `0 4px 20px ${typeColor}44`,
+        border: `3px solid ${typeColor}`,
+        boxShadow: `0 4px 16px rgba(0,0,0,0.35), 0 0 0 1px ${typeColor}44`,
         transform: flipped ? "scaleX(-1)" : undefined,
       }}
     >
@@ -396,8 +447,12 @@ function PokemonSprite({
         />
       ) : (
         <div
-          className="flex h-full w-full items-center justify-center text-3xl font-black text-white"
-          style={{ backgroundColor: typeColor + "88" }}
+          className="flex h-full w-full items-center justify-center text-white"
+          style={{
+            backgroundColor: typeColor + "88",
+            fontFamily: PX_FONT,
+            fontSize: size * 0.3,
+          }}
         >
           <span style={{ transform: flipped ? "scaleX(-1)" : undefined }}>
             {friend.username.charAt(0).toUpperCase()}
@@ -411,10 +466,10 @@ function PokemonSprite({
 function NarratorBox({ text }: { text: string }) {
   return (
     <div
-      className="flex flex-1 items-center px-5 py-4"
+      className="flex flex-1 items-center px-4 py-3"
       style={{
-        borderTop: "3px solid #a08060",
-        borderRight: "2px solid #a08060",
+        borderTop: "3px solid #585858",
+        borderRight: "2px solid #585858",
       }}
     >
       <AnimatePresence mode="wait">
@@ -424,7 +479,8 @@ function NarratorBox({ text }: { text: string }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="text-base font-semibold leading-snug text-gray-800"
+          className="leading-relaxed text-gray-900"
+          style={{ fontFamily: PX_FONT, fontSize: 12 }}
         >
           {text}
         </motion.p>
@@ -442,22 +498,30 @@ function ActionButtons({
   onFight: () => void;
   onRun: () => void;
 }) {
+  const btnBase = {
+    fontFamily: PX_FONT,
+    fontSize: 12,
+    borderRadius: 6,
+    border: "2px solid #585858",
+    cursor: disabled ? ("not-allowed" as const) : ("pointer" as const),
+  };
+
   return (
     <div
-      className="grid grid-cols-2 grid-rows-1 gap-2 p-4"
+      className="grid grid-cols-2 grid-rows-1 gap-2 p-3"
       style={{
         width: "45%",
-        borderTop: "3px solid #a08060",
+        borderTop: "3px solid #585858",
       }}
     >
       <motion.button
         whileTap={disabled ? undefined : { scale: 0.95 }}
         onClick={onFight}
         disabled={disabled}
-        className="rounded-lg py-3 text-base font-black text-white uppercase tracking-wide"
+        className="py-3 uppercase text-white"
         style={{
+          ...btnBase,
           background: disabled ? "#999" : "#F08030",
-          cursor: disabled ? "not-allowed" : "pointer",
         }}
       >
         Fight
@@ -466,10 +530,10 @@ function ActionButtons({
         whileTap={disabled ? undefined : { scale: 0.95 }}
         onClick={onRun}
         disabled={disabled}
-        className="rounded-lg py-3 text-base font-black text-white uppercase tracking-wide"
+        className="py-3 uppercase text-white"
         style={{
+          ...btnBase,
           background: disabled ? "#999" : "#6890F0",
-          cursor: disabled ? "not-allowed" : "pointer",
         }}
       >
         Run
@@ -488,7 +552,10 @@ function MoveSelectPanel({
   onBack: () => void;
 }) {
   return (
-    <div className="flex h-full" style={{ borderTop: "3px solid #a08060" }}>
+    <div
+      className="flex h-full"
+      style={{ borderTop: "3px solid #585858" }}
+    >
       <div className="grid flex-1 grid-cols-2 gap-2 p-3">
         {moves.map((move) => {
           const moveColor = TYPE_COLORS[move.type];
@@ -497,16 +564,18 @@ function MoveSelectPanel({
               key={move.name}
               whileTap={{ scale: 0.95 }}
               onClick={() => onSelect(move)}
-              className="flex flex-col items-start justify-center rounded-lg px-3 py-2"
+              className="flex flex-col items-start justify-center px-3 py-2"
               style={{
+                fontFamily: PX_FONT,
                 background: moveColor + "33",
                 border: `2px solid ${moveColor}`,
+                borderRadius: 6,
               }}
             >
-              <span className="text-sm font-bold text-gray-800">
+              <span className="text-gray-900" style={{ fontSize: 10 }}>
                 {move.name}
               </span>
-              <span className="text-[10px] font-semibold text-gray-500">
+              <span style={{ fontSize: 7, color: "#707070", marginTop: 2 }}>
                 {move.category} {move.power > 0 ? `PWR ${move.power}` : ""}
               </span>
             </motion.button>
@@ -515,12 +584,12 @@ function MoveSelectPanel({
       </div>
       <div
         className="flex w-20 items-center justify-center"
-        style={{ borderLeft: "2px solid #a08060" }}
+        style={{ borderLeft: "2px solid #585858" }}
       >
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onBack}
-          className="text-sm font-bold text-gray-500"
+          style={{ fontFamily: PX_FONT, fontSize: 10, color: "#707070" }}
         >
           Back
         </motion.button>
