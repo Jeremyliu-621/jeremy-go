@@ -276,12 +276,12 @@ export default function BattleScreen() {
             maxHp={opponent.maxHp}
             type={opponent.friend.primaryType}
           />
-          <TauntBubble text={opponentSpeech} side="opponent" />
           <motion.div
             animate={opponentShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
             transition={{ duration: 0.4 }}
             style={{ position: "relative" }}
           >
+            <TauntBubble text={opponentSpeech} side="opponent" />
             <PokemonSprite friend={opponent.friend} size={170} flipped showGlasses={phase === "defeat"} />
             <AttackOverlay type="sniper" visible={sniperOn === "opponent"} size={170} side="opponent" />
             <AttackOverlay type="hit" visible={hitOn === "opponent"} size={170} side="opponent" />
@@ -293,12 +293,12 @@ export default function BattleScreen() {
           className="absolute z-10 flex items-end"
           style={{ bottom: "4%", left: "4%", gap: 6 }}
         >
-          <TauntBubble text={playerSpeech} side="player" />
           <motion.div
             animate={playerShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
             transition={{ duration: 0.4 }}
             style={{ position: "relative" }}
           >
+            <TauntBubble text={playerSpeech} side="player" />
             <PokemonSprite friend={player.friend} size={190} showGlasses={phase === "victory"} />
             <AttackOverlay type="sniper" visible={sniperOn === "player"} size={190} side="player" />
             <AttackOverlay type="hit" visible={hitOn === "player"} size={190} side="player" />
@@ -497,31 +497,30 @@ function TauntBubble({
   if (!text) return null;
 
   return (
-    <div className="relative mb-2 w-full max-w-[min(92vw,320px)]">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={text + side}
-          role="status"
-          initial={{ opacity: 0, scale: 0.88, y: 6 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92 }}
-          transition={{ type: "spring", stiffness: 520, damping: 28 }}
-          className={`pointer-events-none relative z-30 w-max max-w-[min(92vw,320px)] rounded-lg border-4 border-[#2a2a2a] bg-[#fffef5] px-5 py-4 shadow-[4px_6px_0_#1a1a1a,0_8px_24px_rgba(0,0,0,0.45)] ${
-            side === "opponent" ? "ml-auto" : ""
-          }`}
-          style={{
-            fontFamily: PX_FONT,
-            fontSize: "clamp(11px, 3.2vw, 16px)",
-            lineHeight: 1.45,
-            color: "#111",
-            textShadow:
-              "0 1px 0 #fff, 0 0 2px rgba(255,255,255,0.9), 1px 1px 0 rgba(0,0,0,0.15)",
-          }}
-        >
-          {text}
-        </motion.div>
-      </AnimatePresence>
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={text + side}
+        role="status"
+        initial={{ opacity: 0, scale: 0.88, y: 6 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92 }}
+        transition={{ type: "spring", stiffness: 520, damping: 28 }}
+        className="pointer-events-none absolute z-30 w-max max-w-[min(92vw,280px)] rounded-lg border-4 border-[#2a2a2a] bg-[#fffef5] px-5 py-4 shadow-[4px_6px_0_#1a1a1a,0_8px_24px_rgba(0,0,0,0.45)]"
+        style={{
+          ...(side === "player"
+            ? { bottom: "100%", left: 0, marginBottom: 8 }
+            : { top: "100%", right: 0, marginTop: 8 }),
+          fontFamily: PX_FONT,
+          fontSize: "clamp(11px, 3.2vw, 16px)",
+          lineHeight: 1.45,
+          color: "#111",
+          textShadow:
+            "0 1px 0 #fff, 0 0 2px rgba(255,255,255,0.9), 1px 1px 0 rgba(0,0,0,0.15)",
+        }}
+      >
+        {text}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

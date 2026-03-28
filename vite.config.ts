@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       manifest: {
-        name: "Jeremy Go!",
-        short_name: "Jeremy Go!",
+        name: "Jeremy GO!",
+        short_name: "Jeremy GO!",
         description: "Catch your friends like Pokémon",
         theme_color: "#1A1A2E",
         background_color: "#1A1A2E",

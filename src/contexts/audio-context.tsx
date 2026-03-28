@@ -53,7 +53,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
     const audio = new Audio(src);
     audio.loop = true;
-    audio.volume = wantType === "idle" ? 0.25 : 0.35;
+    audio.volume = wantType === "idle" ? 0.08 : 0.1;
     bgmRef.current = audio;
     trackTypeRef.current = wantType;
 
@@ -81,10 +81,42 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const damageBufferRef = useRef<AudioBuffer | null>(null);
+  const audioCtxRef = useRef<globalThis.AudioContext | null>(null);
+
+  // Pre-load damage sound into an AudioBuffer so we can pitch-shift it
+  useEffect(() => {
+    fetch("/damage.mp3")
+      .then((res) => res.arrayBuffer())
+      .then((buf) => {
+        const ctx = new globalThis.AudioContext();
+        audioCtxRef.current = ctx;
+        return ctx.decodeAudioData(buf);
+      })
+      .then((decoded) => {
+        damageBufferRef.current = decoded;
+      })
+      .catch(() => {});
+  }, []);
+
   const playDamage = useCallback(() => {
-    const sfx = new Audio("/damage.mp3");
-    sfx.volume = 0.6;
-    sfx.play().catch(() => {});
+    const ctx = audioCtxRef.current;
+    const buffer = damageBufferRef.current;
+    if (!ctx || !buffer) return;
+
+    // Wide range: 0.4x (slow & deep) to 2.0x (fast & chipmunk)
+    const rate = 0.4 + Math.random() * 1.6;
+
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.playbackRate.value = rate;
+
+    const gain = ctx.createGain();
+    gain.gain.value = 0.6;
+
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start(0);
   }, []);
 
   return (
