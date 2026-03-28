@@ -9,7 +9,7 @@ export function ScanScreen() {
   return (
     <div className="fixed inset-0 bg-navy flex flex-col items-center justify-center">
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-10">
-        <h1 className="text-lg font-black text-offwhite/80">FRIENDDEX</h1>
+        <h1 className="text-lg font-black text-offwhite/80">JEREMY GO!</h1>
         <button
           onClick={() => navigate('/profile')}
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-sm font-bold text-offwhite"

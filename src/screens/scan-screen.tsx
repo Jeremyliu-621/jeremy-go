@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useCamera } from "../hooks/use-camera";
@@ -8,19 +8,93 @@ import DetectionPill from "../components/scan/detection-pill";
 import PokeballSpinner from "../components/pokeball-spinner";
 import type { DetectedFace } from "../types";
 
+/**
+ * Converts a normalized video bounding box to screen pixel positions,
+ * accounting for the object-cover scaling/cropping of the video element.
+ */
+function videoBoxToScreen(
+  box: { x: number; y: number; width: number; height: number },
+  video: HTMLVideoElement,
+) {
+  const vw = video.videoWidth || 1;
+  const vh = video.videoHeight || 1;
+  const cw = video.clientWidth || 1;
+  const ch = video.clientHeight || 1;
+
+  const videoAspect = vw / vh;
+  const containerAspect = cw / ch;
+
+  let scale: number;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (videoAspect > containerAspect) {
+    // Video is wider — cropped horizontally
+    scale = ch / vh;
+    offsetX = (vw * scale - cw) / 2;
+  } else {
+    // Video is taller — cropped vertically
+    scale = cw / vw;
+    offsetY = (vh * scale - ch) / 2;
+  }
+
+  return {
+    left: box.x * vw * scale - offsetX,
+    top: box.y * vh * scale - offsetY,
+    width: box.width * vw * scale,
+    height: box.height * vh * scale,
+  };
+}
+
 export default function ScanScreen() {
   const navigate = useNavigate();
-  const { videoRef, ready, denied, error, toggleCamera } = useCamera();
+  const { videoRef, ready, denied, error } = useCamera();
   const { faces, modelLoading } = useFaceDetection(videoRef, ready);
   const topFace = faces.length > 0 ? faces[0] : null;
+
+  // Force re-render when video resizes so face boxes stay aligned
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const onResize = () => setTick((t) => t + 1);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const handleCapture = useCallback(
     (face: DetectedFace) => {
       if (!face.matchedUser) return;
       if (navigator.vibrate) navigator.vibrate(30);
-      navigate("/catch", { state: { friend: face.matchedUser } });
+
+      // Snapshot the detected face region from the video feed
+      let photoUrl = "";
+      const video = videoRef.current;
+      if (video && video.videoWidth > 0) {
+        const vw = video.videoWidth;
+        const vh = video.videoHeight;
+        const bb = face.boundingBox;
+
+        // Add padding around the face crop (30% each side)
+        const pad = 0.3;
+        const sx = Math.max(0, (bb.x - bb.width * pad) * vw);
+        const sy = Math.max(0, (bb.y - bb.height * pad) * vh);
+        const sw = Math.min(vw - sx, bb.width * (1 + pad * 2) * vw);
+        const sh = Math.min(vh - sy, bb.height * (1 + pad * 2) * vh);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = sw;
+        canvas.height = sh;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+          photoUrl = canvas.toDataURL("image/jpeg", 0.85);
+        }
+      }
+
+      navigate("/catch", {
+        state: { friend: { ...face.matchedUser, photoUrl } },
+      });
     },
-    [navigate],
+    [navigate, videoRef],
   );
 
   return (
@@ -42,24 +116,6 @@ export default function ScanScreen() {
 
       <TopBar variant="scan" />
 
-      {/* Camera toggle */}
-      <button
-        onClick={toggleCamera}
-        className="absolute z-40 flex h-10 w-10 items-center justify-center rounded-full"
-        style={{
-          top: "calc(env(safe-area-inset-top, 12px) + 64px)",
-          right: "16px",
-          background: "rgba(0,0,0,0.35)",
-          backdropFilter: "blur(8px)",
-        }}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-          <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l2-3h6l2 3h1a2 2 0 0 1 2 2v4" />
-          <circle cx="12" cy="12" r="3" />
-          <path d="M17 22l3.5-3.5L17 15" />
-          <path d="M21 18.5H14" />
-        </svg>
-      </button>
 
       {/* Denied / error states */}
       <AnimatePresence>
@@ -108,6 +164,47 @@ export default function ScanScreen() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Debug: face bounding boxes */}
+      {faces.map((face, i) => {
+        const video = videoRef.current;
+        if (!video) return null;
+        const rect = videoBoxToScreen(face.boundingBox, video);
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: rect.left,
+              top: rect.top,
+              width: rect.width,
+              height: rect.height,
+              border: "2px solid #00ff88",
+              borderRadius: 8,
+              zIndex: 15,
+              pointerEvents: "none",
+              boxShadow: "0 0 8px rgba(0,255,136,0.4)",
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: -22,
+                left: 0,
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#00ff88",
+                background: "rgba(0,0,0,0.5)",
+                padding: "2px 6px",
+                borderRadius: 4,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {face.matchedUser?.username ?? "Unknown"}
+            </span>
+          </div>
+        );
+      })}
 
       {/* Hint text when no face */}
       <AnimatePresence>

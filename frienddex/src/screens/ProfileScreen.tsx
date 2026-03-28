@@ -39,7 +39,7 @@ export function ProfileScreen() {
   if (!profile) return null
 
   return (
-    <div className="fixed inset-0 bg-navy frienddex-scroll">
+    <div className="fixed inset-0 bg-navy jeremy-go-scroll">
       <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-navy/90 backdrop-blur-sm">
         <motion.button
           whileTap={{ scale: 0.95 }}

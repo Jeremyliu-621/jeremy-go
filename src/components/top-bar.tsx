@@ -33,20 +33,11 @@ export default function TopBar({ variant = "scan", onRunAway }: Props) {
         </button>
       ) : (
         <span className="text-base font-extrabold tracking-wide text-white/90 drop-shadow">
-          FRIENDDEX
+          JEREMY GO!
         </span>
       )}
 
-      <div
-        className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold"
-        style={{
-          background: "linear-gradient(135deg, #FFCB05, #F0A000)",
-          color: "#1A1A2E",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-        }}
-      >
-        {user?.username?.charAt(0).toUpperCase() ?? "?"}
-      </div>
+      <div />
     </div>
   );
 }

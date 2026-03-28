@@ -39,7 +39,7 @@ export const STAT_ORDER = ['hp', 'attack', 'defense', 'spAttack', 'spDefense', '
 export const STAT_MAX = 255
 
 export const FLAVOR_TEXT_LINES = [
-  'Consulting the Frienddex...',
+  'Consulting Jeremy Go!...',
   'Analyzing trainer aura...',
   'Cross-referencing personality data...',
   'Professor Oak is busy, hold on...',
