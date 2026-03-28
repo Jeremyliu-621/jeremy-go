@@ -37,6 +37,11 @@ export default function BattleScreen() {
   const [narrative, setNarrative] = useState("");
   const [playerShake, setPlayerShake] = useState(false);
   const [opponentShake, setOpponentShake] = useState(false);
+  const [sniperOn, setSniperOn] = useState<"player" | "opponent" | null>(null);
+  const [hitOn, setHitOn] = useState<"player" | "opponent" | null>(null);
+  const [showVideo, setShowVideo] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -53,10 +58,20 @@ export default function BattleScreen() {
     }, 1800);
   }, [state]);
 
+  useEffect(() => {
+    if (phase !== "victory" && phase !== "defeat") return;
+    const timer = setTimeout(() => setShowVideo(true), 1800);
+    return () => clearTimeout(timer);
+  }, [phase]);
+
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-  const animateHit = (target: "player" | "opponent") => {
+  const animateHit = (attackerSide: "player" | "opponent") => {
     playDamage();
+    const target = attackerSide === "player" ? "opponent" : "player";
+    setSniperOn(attackerSide);
+    setHitOn(target);
+
     if (target === "player") {
       setPlayerShake(true);
       setTimeout(() => setPlayerShake(false), 400);
@@ -64,6 +79,11 @@ export default function BattleScreen() {
       setOpponentShake(true);
       setTimeout(() => setOpponentShake(false), 400);
     }
+
+    setTimeout(() => {
+      setSniperOn(null);
+      setHitOn(null);
+    }, 600);
   };
 
   const executeTurn = useCallback(
@@ -82,7 +102,7 @@ export default function BattleScreen() {
       setNarrative(`${attacker.friend.username} used ${move.name}!`);
       await delay(1200);
 
-      animateHit(attackerSide === "player" ? "opponent" : "player");
+      animateHit(attackerSide);
 
       const newHp = Math.max(0, defender.currentHp - damage);
 
@@ -210,8 +230,11 @@ export default function BattleScreen() {
           draggable={false}
         />
 
-        {/* Opponent info box (top-left, like classic Pokemon) */}
-        <div className="absolute top-3 left-3 z-10">
+        {/* Opponent: sprite + info box together (top-right) */}
+        <div
+          className="absolute z-10 flex items-start"
+          style={{ top: "4%", right: "4%", gap: 6 }}
+        >
           <OpponentInfoBox
             name={opponent.friend.username}
             level={opponentLevel}
@@ -219,20 +242,31 @@ export default function BattleScreen() {
             maxHp={opponent.maxHp}
             type={opponent.friend.primaryType}
           />
+          <motion.div
+            animate={opponentShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+            transition={{ duration: 0.4 }}
+            style={{ position: "relative" }}
+          >
+            <PokemonSprite friend={opponent.friend} size={170} flipped showGlasses={phase === "defeat"} />
+            <AttackOverlay type="sniper" visible={sniperOn === "opponent"} size={170} side="opponent" />
+            <AttackOverlay type="hit" visible={hitOn === "opponent"} size={170} side="opponent" />
+          </motion.div>
         </div>
 
-        {/* Opponent sprite — on the far platform (upper-right) */}
-        <motion.div
-          animate={opponentShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-          transition={{ duration: 0.4 }}
-          className="absolute z-10"
-          style={{ top: "18%", right: "12%" }}
+        {/* Player: sprite + info box together (bottom-left) */}
+        <div
+          className="absolute z-10 flex items-end"
+          style={{ bottom: "4%", left: "4%", gap: 6 }}
         >
-          <PokemonSprite friend={opponent.friend} size={96} flipped />
-        </motion.div>
-
-        {/* Player info box (bottom-right, like classic Pokemon) */}
-        <div className="absolute right-3 bottom-3 z-10">
+          <motion.div
+            animate={playerShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+            transition={{ duration: 0.4 }}
+            style={{ position: "relative" }}
+          >
+            <PokemonSprite friend={player.friend} size={190} showGlasses={phase === "victory"} />
+            <AttackOverlay type="sniper" visible={sniperOn === "player"} size={190} side="player" />
+            <AttackOverlay type="hit" visible={hitOn === "player"} size={190} side="player" />
+          </motion.div>
           <PlayerInfoBox
             name={player.friend.username}
             level={playerLevel}
@@ -241,64 +275,174 @@ export default function BattleScreen() {
             type={player.friend.primaryType}
           />
         </div>
-
-        {/* Player sprite — on the near platform (lower-left) */}
-        <motion.div
-          animate={playerShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-          transition={{ duration: 0.4 }}
-          className="absolute z-10"
-          style={{ bottom: "8%", left: "8%" }}
-        >
-          <PokemonSprite friend={player.friend} size={120} />
-        </motion.div>
       </div>
 
-      {/* === BOTTOM PANEL (~38%) === */}
+      {/* === BOTTOM PANEL (Pokemon-style: large text, two halves) === */}
       <div
-        className="flex shrink-0 flex-col"
-        style={{ height: "38%", minHeight: 150, background: "#f8f0d0" }}
+        className="flex shrink-0"
+        style={{
+          height: "34%",
+          minHeight: 130,
+          background: "#f8f0d0",
+          borderTop: "4px solid #585858",
+        }}
       >
         {phase === "moves" ? (
           <MoveSelectPanel
             moves={player.friend.moves}
-            onSelect={(move) => {
-              handleFight(move);
-            }}
+            onSelect={(move) => handleFight(move)}
             onBack={() => setPhase("player-turn")}
           />
-        ) : phase === "victory" || phase === "defeat" ? (
-          <div className="flex h-full">
-            <NarratorBox text={narrative} />
-            <div className="flex flex-1 items-center justify-center">
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate("/")}
-                className="rounded-lg px-6 py-3 text-white uppercase"
-                style={{
-                  fontFamily: pixelFont,
-                  fontSize: 11,
-                  background: phase === "victory" ? "#4a9a3a" : "#C03028",
-                }}
-              >
-                {phase === "victory" ? "Victory!" : "Try Again"}
-              </motion.button>
-            </div>
-          </div>
         ) : (
-          <div className="flex h-full">
-            <NarratorBox text={narrative} />
-            <ActionButtons
-              disabled={phase !== "player-turn"}
-              onFight={() => setPhase("moves")}
-              onRun={() => {
-                setNarrative("Got away safely!");
-                setPhase("ran");
-                setTimeout(() => navigate("/"), 1200);
+          <>
+            {/* Left: narrator text */}
+            <div
+              className="flex flex-1 items-center"
+              style={{
+                padding: "16px 24px",
+                borderRight: "3px solid #585858",
               }}
-            />
-          </div>
+            >
+              <p
+                className="text-gray-900"
+                style={{ fontFamily: pixelFont, fontSize: 20, lineHeight: "1.6" }}
+              >
+                {narrative}
+              </p>
+            </div>
+            {/* Right: Fight / Run stacked */}
+            <div
+              className="flex flex-col"
+              style={{ width: "40%" }}
+            >
+              {(phase === "victory" || phase === "defeat") ? (
+                <div className="flex flex-1 items-center justify-center" style={{ padding: 8 }}>
+                  <p style={{ fontFamily: pixelFont, fontSize: 18, color: "#505050" }}>
+                    {phase === "victory" ? "You win!" : "You lose..."}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <motion.button
+                    whileTap={phase === "player-turn" ? { scale: 0.97 } : undefined}
+                    onClick={phase === "player-turn" ? () => setPhase("moves") : undefined}
+                    className="flex flex-1 items-center justify-center uppercase text-white"
+                    style={{
+                      fontFamily: pixelFont,
+                      fontSize: 22,
+                      background: phase !== "player-turn" ? "#b0a888" : "#F08030",
+                      borderBottom: "3px solid #585858",
+                      cursor: phase !== "player-turn" ? "not-allowed" : "pointer",
+                      opacity: phase !== "player-turn" ? 0.5 : 1,
+                    }}
+                  >
+                    Fight
+                  </motion.button>
+                  <motion.button
+                    whileTap={phase === "player-turn" ? { scale: 0.97 } : undefined}
+                    onClick={phase === "player-turn" ? () => {
+                      setNarrative("Got away safely!");
+                      setPhase("ran");
+                      setTimeout(() => navigate("/"), 1200);
+                    } : undefined}
+                    className="flex flex-1 items-center justify-center uppercase text-white"
+                    style={{
+                      fontFamily: pixelFont,
+                      fontSize: 22,
+                      background: phase !== "player-turn" ? "#b0a888" : "#6890F0",
+                      cursor: phase !== "player-turn" ? "not-allowed" : "pointer",
+                      opacity: phase !== "player-turn" ? 0.5 : 1,
+                    }}
+                  >
+                    Run
+                  </motion.button>
+                </>
+              )}
+            </div>
+          </>
         )}
       </div>
+
+      {/* === VICTORY VIDEO OVERLAY === */}
+      <AnimatePresence>
+        {showVideo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center"
+            style={{ background: "#000" }}
+          >
+            <video
+              ref={videoRef}
+              src="/victory.mp4"
+              autoPlay
+              playsInline
+              onLoadedMetadata={(e) => {
+                (e.target as HTMLVideoElement).playbackRate = 2;
+              }}
+              onEnded={() => setVideoEnded(true)}
+              className="absolute inset-0 h-full w-full object-cover"
+              style={{ opacity: 0.7 }}
+            />
+
+            <motion.h1
+              initial={{ scale: 0, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", damping: 6, stiffness: 80, delay: 0.3 }}
+              style={{
+                fontFamily: pixelFont,
+                fontSize: 52,
+                color: "#FFD700",
+                textShadow: "0 0 20px #FFD700, 0 0 40px #FF8C00, 4px 4px 0 #000",
+                zIndex: 10,
+                textTransform: "uppercase",
+                letterSpacing: 6,
+              }}
+            >
+              {phase === "victory" ? "Victory" : "Defeat"}
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              style={{
+                fontFamily: pixelFont,
+                fontSize: 16,
+                color: "#fff",
+                zIndex: 10,
+                marginTop: 20,
+              }}
+            >
+              {phase === "victory"
+                ? `${player.friend.username} dominated!`
+                : `${opponent.friend.username} was too strong...`}
+            </motion.p>
+
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: videoEnded ? 1 : 0.4 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/")}
+              style={{
+                fontFamily: pixelFont,
+                fontSize: 16,
+                color: "#fff",
+                background: "rgba(255,255,255,0.15)",
+                border: "2px solid rgba(255,255,255,0.4)",
+                borderRadius: 8,
+                padding: "12px 32px",
+                marginTop: 40,
+                zIndex: 10,
+                cursor: "pointer",
+                textTransform: "uppercase",
+              }}
+            >
+              Leave
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -347,27 +491,34 @@ function OpponentInfoBox({
 }) {
   return (
     <div
-      className="w-44 px-3 py-2"
       style={{
         fontFamily: PX_FONT,
+        width: 210,
+        padding: "12px 16px",
         background: "linear-gradient(180deg, #f0e8c8 0%, #d8d0a8 100%)",
-        border: "3px solid #585858",
-        borderRadius: 6,
-        boxShadow: "2px 2px 0 #404040",
+        border: "4px solid #585858",
+        borderRadius: 8,
+        boxShadow: "3px 3px 0 #404040",
       }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" style={{ marginBottom: 5 }}>
         <span
           className="truncate text-gray-900"
-          style={{ fontSize: 10, maxWidth: 90 }}
+          style={{ fontSize: 12, maxWidth: 130 }}
         >
           {name}
         </span>
-        <span style={{ fontSize: 8, color: "#606060" }}>
+        <span style={{ fontSize: 10, color: "#606060" }}>
           Lv{level}
         </span>
       </div>
       <HpBar current={currentHp} max={maxHp} />
+      <p
+        className="text-right"
+        style={{ fontSize: 10, color: "#505050", marginTop: 5 }}
+      >
+        {currentHp}/{maxHp}
+      </p>
     </div>
   );
 }
@@ -386,30 +537,31 @@ function PlayerInfoBox({
 }) {
   return (
     <div
-      className="w-48 px-3 py-2"
       style={{
         fontFamily: PX_FONT,
+        width: 220,
+        padding: "12px 16px",
         background: "linear-gradient(180deg, #f0e8c8 0%, #d8d0a8 100%)",
-        border: "3px solid #585858",
-        borderRadius: 6,
-        boxShadow: "2px 2px 0 #404040",
+        border: "4px solid #585858",
+        borderRadius: 8,
+        boxShadow: "3px 3px 0 #404040",
       }}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" style={{ marginBottom: 5 }}>
         <span
           className="truncate text-gray-900"
-          style={{ fontSize: 10, maxWidth: 100 }}
+          style={{ fontSize: 12, maxWidth: 140 }}
         >
           {name}
         </span>
-        <span style={{ fontSize: 8, color: "#606060" }}>
+        <span style={{ fontSize: 10, color: "#606060" }}>
           Lv{level}
         </span>
       </div>
       <HpBar current={currentHp} max={maxHp} />
       <p
-        className="mt-0.5 text-right"
-        style={{ fontSize: 8, color: "#505050" }}
+        className="text-right"
+        style={{ fontSize: 10, color: "#505050", marginTop: 5 }}
       >
         {currentHp}/{maxHp}
       </p>
@@ -421,21 +573,25 @@ function PokemonSprite({
   friend,
   size,
   flipped,
+  showGlasses,
 }: {
   friend: CaughtFriend;
   size: number;
   flipped?: boolean;
+  showGlasses?: boolean;
 }) {
   const typeColor = TYPE_COLORS[friend.primaryType];
   return (
     <div
-      className="overflow-hidden rounded-full"
+      className="rounded-full"
       style={{
         width: size,
         height: size,
+        position: "relative",
         border: `3px solid ${typeColor}`,
         boxShadow: `0 4px 16px rgba(0,0,0,0.35), 0 0 0 1px ${typeColor}44`,
         transform: flipped ? "scaleX(-1)" : undefined,
+        overflow: "hidden",
       }}
     >
       {friend.photoUrl ? (
@@ -459,86 +615,97 @@ function PokemonSprite({
           </span>
         </div>
       )}
-    </div>
-  );
-}
-
-function NarratorBox({ text }: { text: string }) {
-  return (
-    <div
-      className="flex flex-1 items-center px-4 py-3"
-      style={{
-        borderTop: "3px solid #585858",
-        borderRight: "2px solid #585858",
-      }}
-    >
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={text}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="leading-relaxed text-gray-900"
-          style={{ fontFamily: PX_FONT, fontSize: 12 }}
-        >
-          {text}
-        </motion.p>
+      <AnimatePresence>
+        {showGlasses && (
+          <motion.img
+            src="/glasses.png"
+            initial={{ y: -size, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", damping: 8, stiffness: 120, delay: 0.2 }}
+            style={{
+              position: "absolute",
+              top: "18%",
+              left: "5%",
+              width: "90%",
+              pointerEvents: "none",
+              zIndex: 10,
+              transform: flipped ? "scaleX(-1)" : undefined,
+            }}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
 }
 
-function ActionButtons({
-  disabled,
-  onFight,
-  onRun,
+function AttackOverlay({
+  type,
+  visible,
+  size,
+  side,
 }: {
-  disabled: boolean;
-  onFight: () => void;
-  onRun: () => void;
+  type: "sniper" | "hit";
+  visible: boolean;
+  size: number;
+  side: "player" | "opponent";
 }) {
-  const btnBase = {
-    fontFamily: PX_FONT,
-    fontSize: 12,
-    borderRadius: 6,
-    border: "2px solid #585858",
-    cursor: disabled ? ("not-allowed" as const) : ("pointer" as const),
-  };
+  if (type === "hit") {
+    return (
+      <AnimatePresence>
+        {visible && (
+          <motion.img
+            src="/hit.png"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 0.9, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.3 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: size,
+              height: size,
+              borderRadius: "50%",
+              objectFit: "cover",
+              pointerEvents: "none",
+              zIndex: 20,
+            }}
+          />
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  const sniperSize = size * 0.7;
+  const isPlayer = side === "player";
 
   return (
-    <div
-      className="grid grid-cols-2 grid-rows-1 gap-2 p-3"
-      style={{
-        width: "45%",
-        borderTop: "3px solid #585858",
-      }}
-    >
-      <motion.button
-        whileTap={disabled ? undefined : { scale: 0.95 }}
-        onClick={onFight}
-        disabled={disabled}
-        className="py-3 uppercase text-white"
-        style={{
-          ...btnBase,
-          background: disabled ? "#999" : "#F08030",
-        }}
-      >
-        Fight
-      </motion.button>
-      <motion.button
-        whileTap={disabled ? undefined : { scale: 0.95 }}
-        onClick={onRun}
-        disabled={disabled}
-        className="py-3 uppercase text-white"
-        style={{
-          ...btnBase,
-          background: disabled ? "#999" : "#6890F0",
-        }}
-      >
-        Run
-      </motion.button>
-    </div>
+    <AnimatePresence>
+      {visible && (
+        <motion.img
+          src="/sniper.jpg"
+          initial={{ opacity: 0, scale: 0.4 }}
+          animate={{ opacity: 0.95, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.6 }}
+          transition={{ duration: 0.15 }}
+          style={{
+            position: "absolute",
+            top: isPlayer ? -sniperSize * 0.45 : undefined,
+            bottom: isPlayer ? undefined : -sniperSize * 0.45,
+            left: isPlayer ? undefined : -sniperSize * 0.45,
+            right: isPlayer ? -sniperSize * 0.45 : undefined,
+            width: sniperSize,
+            height: sniperSize,
+            objectFit: "contain",
+            pointerEvents: "none",
+            zIndex: 25,
+            transform: isPlayer
+              ? "rotate(-35deg) scaleX(-1)"
+              : "rotate(-35deg)",
+          }}
+        />
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -551,45 +718,82 @@ function MoveSelectPanel({
   onSelect: (move: Move) => void;
   onBack: () => void;
 }) {
+  const [selected, setSelected] = useState(0);
+  const current = moves[selected];
+  const currentColor = current ? TYPE_COLORS[current.type] : "#888";
+
   return (
-    <div
-      className="flex h-full"
-      style={{ borderTop: "3px solid #585858" }}
-    >
-      <div className="grid flex-1 grid-cols-2 gap-2 p-3">
-        {moves.map((move) => {
-          const moveColor = TYPE_COLORS[move.type];
-          return (
-            <motion.button
-              key={move.name}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onSelect(move)}
-              className="flex flex-col items-start justify-center px-3 py-2"
+    <div className="flex h-full w-full">
+      {/* Left: move list */}
+      <div
+        className="flex flex-1 flex-col justify-center"
+        style={{ padding: "12px 20px", borderRight: "3px solid #585858" }}
+      >
+        {moves.map((move, i) => (
+          <motion.button
+            key={move.name}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => { setSelected(i); onSelect(move); }}
+            onMouseEnter={() => setSelected(i)}
+            className="flex items-center text-left text-gray-900"
+            style={{
+              fontFamily: PX_FONT,
+              fontSize: 17,
+              padding: "6px 8px",
+              borderRadius: 4,
+              background: i === selected ? "#d8d0a8" : "transparent",
+            }}
+          >
+            <span style={{ marginRight: 8, opacity: i === selected ? 1 : 0 }}>
+              {"\u25B6"}
+            </span>
+            {move.name}
+          </motion.button>
+        ))}
+      </div>
+      {/* Right: move details + back */}
+      <div
+        className="flex flex-col justify-between"
+        style={{ width: "38%", padding: "14px 16px" }}
+      >
+        <div>
+          <div className="flex items-center" style={{ gap: 8, marginBottom: 10 }}>
+            <span
               style={{
                 fontFamily: PX_FONT,
-                background: moveColor + "33",
-                border: `2px solid ${moveColor}`,
-                borderRadius: 6,
+                fontSize: 11,
+                color: "#fff",
+                background: currentColor,
+                padding: "4px 8px",
+                borderRadius: 4,
+                textTransform: "uppercase",
               }}
             >
-              <span className="text-gray-900" style={{ fontSize: 10 }}>
-                {move.name}
-              </span>
-              <span style={{ fontSize: 7, color: "#707070", marginTop: 2 }}>
-                {move.category} {move.power > 0 ? `PWR ${move.power}` : ""}
-              </span>
-            </motion.button>
-          );
-        })}
-      </div>
-      <div
-        className="flex w-20 items-center justify-center"
-        style={{ borderLeft: "2px solid #585858" }}
-      >
+              {current?.type}
+            </span>
+            <span style={{ fontFamily: PX_FONT, fontSize: 11, color: "#606060" }}>
+              {current?.category}
+            </span>
+          </div>
+          {current?.power > 0 && (
+            <p style={{ fontFamily: PX_FONT, fontSize: 13, color: "#404040" }}>
+              PWR {current.power}
+            </p>
+          )}
+        </div>
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onBack}
-          style={{ fontFamily: PX_FONT, fontSize: 10, color: "#707070" }}
+          className="self-end uppercase"
+          style={{
+            fontFamily: PX_FONT,
+            fontSize: 14,
+            color: "#505050",
+            background: "#e8e0c0",
+            border: "2px solid #a09878",
+            borderRadius: 6,
+            padding: "8px 20px",
+          }}
         >
           Back
         </motion.button>
