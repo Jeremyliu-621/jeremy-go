@@ -43,8 +43,8 @@ export function CatchScreen() {
     })
     resultRef.current = result
 
-    const rate = 0.45 + (true ? 0.2 : 0) + accuracy * 0.15
-    setCatchRate(Math.min(rate, 0.95))
+    const bonus = 0.05
+    setCatchRate(Math.min(accuracy + bonus, 0.98))
 
     setTimeout(() => {
       setPhase('wobbling')

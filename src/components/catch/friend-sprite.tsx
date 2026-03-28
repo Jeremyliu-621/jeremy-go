@@ -40,7 +40,7 @@ export default function FriendSprite({ friend, phase }: Props) {
       variants={spriteVariants}
       animate={animState}
       style={{
-        display: isVisible || phase === "absorbing" || phase === "escaped" ? "flex" : "none",
+        display: isVisible || phase === "absorbing" ? "flex" : "none",
       }}
     >
       {/* Ground shadow */}

@@ -61,6 +61,10 @@ export default function ThrowableBall({
   const endDrag = useCallback(
     async (clientX: number, clientY: number) => {
       if (!startRef.current || !enabled || !isReady) return;
+
+      const dragOffX = dragDelta.x * 0.3;
+      const dragOffY = dragDelta.y * 0.4;
+
       setDragging(false);
       setShowTrail(false);
       setTrailPoints([]);
@@ -72,44 +76,47 @@ export default function ThrowableBall({
       startRef.current = null;
       setDragDelta({ x: 0, y: 0 });
 
-      const minSwipe = 30;
-      if (dy < minSwipe) return;
+      const swipeDist = Math.sqrt(dx * dx + dy * dy);
+      if (swipeDist < 40) return;
 
       const vh = window.innerHeight;
       const vw = window.innerWidth;
 
-      const speed = dy / dt;
-      const normalizedSpeed = Math.min(speed / 1.8, 1.0);
-      const lateralDev = Math.abs(dx) / (vw * 0.5);
-      const straightness = Math.max(0, 1.0 - lateralDev * 2.5);
-      const swipeLength = Math.min(dy / (vh * 0.35), 1.0);
-      const accuracy =
-        normalizedSpeed * 0.3 + straightness * 0.5 + swipeLength * 0.2;
+      const velocity = Math.min(swipeDist / dt, 4);
+      const flightDuration = 0.45 + (1 - velocity / 4) * 0.3;
 
-      const targetY = -(vh * 0.55);
-      const lateralDrift = dx * 0.2;
-      const flightDuration = 0.5 + (1 - normalizedSpeed) * 0.35;
+      const throwScale = 2.8;
+      const finalX = dx * throwScale;
+      const finalY = -dy * throwScale;
+
+      const targetCenterX = vw / 2;
+      const targetCenterY = vh * 0.28;
+      const ballStartX = vw / 2;
+      const ballStartY = vh * 0.85;
+      const landX = ballStartX + finalX;
+      const landY = ballStartY + finalY;
+
+      const distToTarget = Math.sqrt(
+        (landX - targetCenterX) ** 2 + (landY - targetCenterY) ** 2,
+      );
+      const maxMissDistance = vh * 0.5;
+      const accuracy = Math.max(0, Math.min(1, 1 - distToTarget / maxMissDistance));
 
       if (navigator.vibrate) navigator.vibrate(15);
 
+      controls.set({ x: dragOffX, y: dragOffY, scale: 1, rotate: 0 });
+
       controls.start({
-        x: [0, lateralDrift * 0.6, lateralDrift * 0.2, 0],
-        y: [0, targetY * 0.35, targetY - 20, targetY],
-        scale: [1, 0.75, 0.5, 0.35],
-        rotate: [0, 720 + Math.random() * 180],
+        x: finalX,
+        y: finalY,
+        scale: 0.3,
+        rotate: 720 + Math.random() * 180,
         transition: {
           duration: flightDuration,
-          ease: [0.12, 0.8, 0.3, 1],
-          x: { duration: flightDuration, ease: "easeOut" },
-          y: {
-            duration: flightDuration,
-            times: [0, 0.3, 0.75, 1],
-            ease: [0.12, 0.8, 0.3, 1],
-          },
-          scale: {
-            duration: flightDuration,
-            times: [0, 0.35, 0.7, 1],
-          },
+          x: { duration: flightDuration, ease: [0.2, 0.8, 0.3, 1] },
+          y: { duration: flightDuration, ease: [0.05, 0.7, 0.25, 1] },
+          scale: { duration: flightDuration, ease: [0.3, 0.6, 0.4, 1] },
+          rotate: { duration: flightDuration, ease: "easeOut" },
         },
       });
 
@@ -118,7 +125,7 @@ export default function ThrowableBall({
         flightDuration * 1000 + 50,
       );
     },
-    [enabled, isReady, controls, onThrowComplete],
+    [enabled, isReady, controls, onThrowComplete, dragDelta],
   );
 
   const handleTouchStart = useCallback(

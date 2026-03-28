@@ -281,7 +281,7 @@ export default function RevealScreen() {
             }}
           >
             {STAT_ORDER.map((key, i) => {
-              const value = (stats.stats as Record<string, number>)[key] ?? 0;
+              const value = (stats.stats as unknown as Record<string, number>)[key] ?? 0;
               return (
                 <motion.div
                   key={key}

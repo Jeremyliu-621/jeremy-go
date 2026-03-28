@@ -407,7 +407,7 @@ function LeftDetail({
         }}
       >
         {STAT_ORDER.map((key) => {
-          const value = (friend.stats as Record<string, number>)[key] ?? 0;
+          const value = (friend.stats as unknown as Record<string, number>)[key] ?? 0;
           const pct = (value / STAT_MAX) * 100;
           return (
             <div

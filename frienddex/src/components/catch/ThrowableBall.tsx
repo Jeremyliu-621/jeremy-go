@@ -66,25 +66,38 @@ export function ThrowableBall({ phase, onThrowComplete, enabled }: Props) {
       startRef.current = null
       setDragDelta({ x: 0, y: 0 })
 
-      if (dy < 40 && Math.abs(dx) < 15) return
+      const swipeDist = Math.sqrt(dx * dx + dy * dy)
+      if (swipeDist < 40) return
 
-      const velocity = Math.min(dy / dt, 4)
-      const lateralError = Math.abs(dx) / window.innerWidth
-      const speedScore = Math.min(velocity / 2.0, 1.0)
-      const accuracyScore = Math.max(0, 1.0 - lateralError * 3)
-      const accuracy = Math.min(speedScore * 0.5 + accuracyScore * 0.5, 1.0)
-      const flightDuration = 0.55 + (1 - velocity / 4) * 0.4
-
+      const vw = window.innerWidth
       const vh = window.innerHeight
-      const targetY = -(vh * 0.42)
-      const lateralDrift = dx * 0.25
+      const velocity = Math.min(swipeDist / dt, 4)
+      const flightDuration = 0.5 + (1 - velocity / 4) * 0.35
+
+      const throwScale = 2.8
+      const finalX = dx * throwScale
+      const finalY = -dy * throwScale
+
+      const targetCenterX = vw / 2
+      const targetCenterY = vh * 0.26
+
+      const ballStartX = vw / 2
+      const ballStartY = vh * 0.85
+      const landX = ballStartX + finalX
+      const landY = ballStartY + finalY
+
+      const distToTarget = Math.sqrt(
+        (landX - targetCenterX) ** 2 + (landY - targetCenterY) ** 2,
+      )
+      const maxMissDistance = vh * 0.5
+      const accuracy = Math.max(0, Math.min(1, 1 - distToTarget / maxMissDistance))
 
       if (navigator.vibrate) navigator.vibrate(15)
 
       controls.start({
-        x: [0, lateralDrift * 0.5, lateralDrift * 0.15, 0],
-        y: [0, targetY * 0.3, targetY - 30, targetY],
-        scale: [1, 0.8, 0.55, 0.4],
+        x: [0, finalX * 0.4, finalX * 0.8, finalX],
+        y: [0, finalY * 0.3, finalY * 0.75, finalY],
+        scale: [1, 0.8, 0.55, 0.35],
         rotate: [0, 360 * 2 + Math.random() * 180],
         transition: {
           duration: flightDuration,
