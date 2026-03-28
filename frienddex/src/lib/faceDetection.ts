@@ -48,7 +48,7 @@ export async function extractFaceDescriptor(imageUrl: string): Promise<number[]>
  * Uses relative distances between key facial landmarks as a fingerprint,
  * normalized by inter-eye distance for scale invariance.
  */
-function computeDescriptorFromKeypoints(
+export function computeDescriptorFromKeypoints(
   keypoints: faceLandmarksDetection.Keypoint[]
 ): number[] {
   const anchorIndices = [
