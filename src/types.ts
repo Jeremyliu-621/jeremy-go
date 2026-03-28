@@ -91,7 +91,7 @@ export const TYPE_COLORS: Record<PokemonType, string> = {
 
 export const MOCK_FRIEND: FriendProfile = {
   id: "demo-friend-001",
-  username: "Chud",
+  username: "chud",
   photoUrl: "",
   cp: 247,
   primaryType: "Electric",

@@ -114,6 +114,33 @@ export default function ScanScreen() {
         className="absolute inset-0 h-full w-full object-cover"
       />
 
+      {/* Rio filter overlay — purple-to-magenta tint */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1]"
+        style={{
+          background: "linear-gradient(135deg, rgba(75, 20, 120, 0.38) 0%, rgba(170, 30, 110, 0.35) 60%, rgba(200, 45, 90, 0.32) 100%)",
+          mixBlendMode: "color",
+        }}
+      />
+
+      {/* Rio De Janeiro title */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center"
+      >
+        <h1
+          style={{
+            fontFamily: "'Helvetica Neue', 'Segoe UI', Arial, sans-serif",
+            fontSize: "clamp(28px, 7vw, 48px)",
+            fontWeight: 300,
+            color: "rgba(255, 255, 255, 0.92)",
+            letterSpacing: "0.04em",
+            textShadow: "0 2px 12px rgba(0, 0, 0, 0.3)",
+          }}
+        >
+          Rio De Janeiro
+        </h1>
+      </div>
+
       <TopBar variant="scan" />
 
 
