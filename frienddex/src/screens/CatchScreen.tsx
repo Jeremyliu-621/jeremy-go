@@ -60,8 +60,10 @@ export function CatchScreen() {
 
   const handleSuccessAnimDone = useCallback(() => {
     setPhase('transitioning')
-    // TODO: navigate to loading/reveal screen with friend data
-  }, [])
+    setTimeout(() => {
+      navigate('/loading', { replace: true, state: { friend } })
+    }, 600)
+  }, [navigate, friend])
 
   const handleRunAway = useCallback(() => {
     navigate('/', { replace: true })
