@@ -11,6 +11,7 @@ import NameCpPill from "../components/catch/name-cp-pill";
 import TargetRing from "../components/catch/target-ring";
 import ThrowableBall from "../components/catch/throwable-ball";
 import WobbleBall from "../components/catch/wobble-ball";
+import CatchMeter from "../components/catch/catch-meter";
 
 export default function CatchScreen() {
   const location = useLocation();
@@ -20,16 +21,22 @@ export default function CatchScreen() {
 
   const [phase, setPhase] = useState<CatchPhase>("ready");
   const [message, setMessage] = useState<string | null>(null);
+  const [throwAccuracy, setThrowAccuracy] = useState<number | null>(null);
+  const [catchRate, setCatchRate] = useState(0);
   const resultRef = useRef<ThrowResult | null>(null);
 
-  const handleThrowComplete = useCallback(() => {
+  const handleThrowComplete = useCallback((accuracy: number) => {
     setPhase("absorbing");
+    setThrowAccuracy(accuracy);
 
     const result = rollCatch({
       neverCaughtBefore: true,
-      throwAccuracy: 0.7,
+      throwAccuracy: accuracy,
     });
     resultRef.current = result;
+
+    const rate = 0.25 + (true ? 0.15 : 0) + accuracy * 0.45;
+    setCatchRate(Math.min(rate, 0.95));
 
     setTimeout(() => {
       setPhase("wobbling");
@@ -46,6 +53,8 @@ export default function CatchScreen() {
     } else {
       setPhase("escaped");
       setMessage(`Oh no! ${friend.username} escaped!`);
+      setThrowAccuracy(null);
+      setCatchRate(0);
       setTimeout(() => setMessage(null), 2200);
     }
   }, [friend.username]);
@@ -67,10 +76,14 @@ export default function CatchScreen() {
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
       <EnvironmentBg />
-
       <TopBar variant="catch" onRunAway={handleRunAway} />
 
-      {/* Friend zone — absolutely positioned in upper scene */}
+      <CatchMeter
+        phase={phase}
+        accuracy={throwAccuracy}
+        catchRate={catchRate}
+      />
+
       <div
         className="absolute left-0 right-0 z-10 flex flex-col items-center"
         style={{ top: "16%", pointerEvents: "none" }}
@@ -83,14 +96,12 @@ export default function CatchScreen() {
         </div>
       </div>
 
-      {/* Throwable ball (bottom) */}
       <ThrowableBall
         phase={phase}
         onThrowComplete={handleThrowComplete}
         enabled={phase === "ready" || phase === "escaped"}
       />
 
-      {/* Wobble ball (center, after throw hits) */}
       <WobbleBall
         phase={phase}
         wobbleCount={resultRef.current?.wobbles ?? 3}
@@ -98,7 +109,6 @@ export default function CatchScreen() {
         onSuccessAnimDone={handleSuccessAnimDone}
       />
 
-      {/* Flash overlay on absorb */}
       <AnimatePresence>
         {phase === "absorbing" && (
           <motion.div
@@ -112,7 +122,6 @@ export default function CatchScreen() {
         )}
       </AnimatePresence>
 
-      {/* Success white flash + transition */}
       <AnimatePresence>
         {phase === "transitioning" && (
           <motion.div
@@ -126,7 +135,6 @@ export default function CatchScreen() {
         )}
       </AnimatePresence>
 
-      {/* Escaped message */}
       <AnimatePresence>
         {message && (
           <motion.div
@@ -151,13 +159,12 @@ export default function CatchScreen() {
         )}
       </AnimatePresence>
 
-      {/* Fail burst effect on ball */}
       <AnimatePresence>
         {phase === "escaped" && (
           <motion.div
             key="burst-effect"
             className="pointer-events-none absolute left-1/2 z-40 -translate-x-1/2"
-            style={{ top: "53%" }}
+            style={{ top: "35%" }}
             initial={{ scale: 0.5, opacity: 1 }}
             animate={{ scale: 2.5, opacity: 0 }}
             exit={{ opacity: 0 }}

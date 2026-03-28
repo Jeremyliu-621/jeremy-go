@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { CatchPhase, CatchTarget } from '../types/catch'
@@ -10,6 +10,7 @@ import { NameCpPill } from '../components/catch/NameCpPill'
 import { TargetRing } from '../components/catch/TargetRing'
 import { ThrowableBall } from '../components/catch/ThrowableBall'
 import { WobbleBall } from '../components/catch/WobbleBall'
+import { CatchMeter } from '../components/catch/CatchMeter'
 
 const MOCK_FRIEND: CatchTarget = {
   id: 'demo-friend-001',
@@ -28,16 +29,22 @@ export function CatchScreen() {
 
   const [phase, setPhase] = useState<CatchPhase>('ready')
   const [message, setMessage] = useState<string | null>(null)
+  const [throwAccuracy, setThrowAccuracy] = useState<number | null>(null)
+  const [catchRate, setCatchRate] = useState(0)
   const resultRef = useRef<ThrowResult | null>(null)
 
-  const handleThrowComplete = useCallback(() => {
+  const handleThrowComplete = useCallback((accuracy: number) => {
     setPhase('absorbing')
+    setThrowAccuracy(accuracy)
 
     const result = rollCatch({
       neverCaughtBefore: true,
-      throwAccuracy: 0.7,
+      throwAccuracy: accuracy,
     })
     resultRef.current = result
+
+    const rate = 0.45 + (true ? 0.2 : 0) + accuracy * 0.15
+    setCatchRate(Math.min(rate, 0.95))
 
     setTimeout(() => {
       setPhase('wobbling')
@@ -54,14 +61,26 @@ export function CatchScreen() {
     } else {
       setPhase('escaped')
       setMessage(`Oh no! ${friend.username} escaped!`)
+      setThrowAccuracy(null)
+      setCatchRate(0)
       setTimeout(() => setMessage(null), 2200)
     }
   }, [friend.username])
 
   const handleSuccessAnimDone = useCallback(() => {
     setPhase('transitioning')
-    // TODO: navigate to loading/reveal screen with friend data
   }, [])
+
+  useEffect(() => {
+    if (phase !== 'success') return
+    const timer = setTimeout(() => {
+      setPhase('transitioning')
+      setTimeout(() => {
+        navigate('/loading', { replace: true, state: { friend } })
+      }, 600)
+    }, 1800)
+    return () => clearTimeout(timer)
+  }, [phase, navigate, friend])
 
   const handleRunAway = useCallback(() => {
     navigate('/', { replace: true })
@@ -78,6 +97,12 @@ export function CatchScreen() {
     >
       <EnvironmentBg />
       <CatchTopBar onRunAway={handleRunAway} />
+
+      <CatchMeter
+        phase={phase}
+        accuracy={throwAccuracy}
+        catchRate={catchRate}
+      />
 
       <div
         className="absolute left-0 right-0 z-10 flex flex-col items-center"
