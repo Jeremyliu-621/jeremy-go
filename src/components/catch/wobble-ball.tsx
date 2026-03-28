@@ -38,10 +38,11 @@ export default function WobbleBall({
           y: [0, -4, 0, -3, 0],
           transition: { duration: 0.65, ease: "easeInOut" },
         });
-        await new Promise((r) => setTimeout(r, 300));
-      }
-      onWobbleComplete();
-    })();
+      }, delay);
+    }
+
+    const totalTime = wobbleCount * (wobbleDuration + pauseBetween);
+    setTimeout(() => onWobbleComplete(), totalTime);
   }, [phase, wobbleCount, controls, onWobbleComplete]);
 
   useEffect(() => {

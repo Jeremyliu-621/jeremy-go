@@ -29,11 +29,18 @@ export function ScanScreen() {
         <p className="text-gray-500 text-xs mt-2">Point at a friend to capture them</p>
       </div>
 
-      <div className="absolute bottom-8 flex gap-4">
+      <div className="absolute bottom-8 flex gap-3">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/frienddex')}
+          className="px-5 py-2 rounded-full bg-primary text-white font-semibold text-sm"
+        >
+          Frienddex
+        </motion.button>
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate('/profile')}
-          className="px-5 py-2 rounded-full bg-primary text-white font-semibold text-sm"
+          className="px-5 py-2 rounded-full bg-white/10 text-gray-300 font-semibold text-sm"
         >
           My Profile
         </motion.button>

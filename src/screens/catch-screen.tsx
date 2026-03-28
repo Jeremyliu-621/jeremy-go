@@ -50,6 +50,9 @@ export default function CatchScreen() {
     if (result.caught) {
       setPhase("success");
       if (navigator.vibrate) navigator.vibrate([80, 40, 120]);
+      setTimeout(() => {
+        navigate("/reveal", { state: { friend }, replace: true });
+      }, 2400);
     } else {
       setPhase("escaped");
       setMessage(`Oh no! ${friend.username} escaped!`);
@@ -57,11 +60,11 @@ export default function CatchScreen() {
       setCatchRate(0);
       setTimeout(() => setMessage(null), 2200);
     }
-  }, [friend.username]);
+  }, [friend, navigate]);
 
   const handleSuccessAnimDone = useCallback(() => {
-    setPhase("transitioning");
-  }, []);
+    navigate("/reveal", { state: { friend }, replace: true });
+  }, [navigate, friend]);
 
   const handleRunAway = useCallback(() => {
     navigate("/", { replace: true });
