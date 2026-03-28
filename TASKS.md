@@ -2,48 +2,51 @@
 
 Work through this in order. Check off as you go. Do not skip phases. Run TESTING.md tests after each phase before proceeding.
 
----
-
-## Phase 0 — Project Setup
-- [ ] Vite + React + TypeScript scaffolded
-- [ ] vite-plugin-pwa configured (manifest, service worker, installable)
-- [ ] Tailwind CSS configured
-- [ ] Framer Motion installed
-- [ ] TensorFlow.js + face-landmarks-detection installed
-- [ ] Supabase client configured
-- [ ] Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-- [ ] Vercel config (`vercel.json`) with SPA routing
-- [ ] App loads in mobile Chrome without errors
-- [ ] PWA install prompt works on Android Chrome
+**IMPORTANT: All work happens in `/frienddex`. Root `/src` is deprecated — do not build there.**
 
 ---
 
-## Phase 1 — Auth + Database
-- [ ] Supabase schema designed and all migrations run
-- [ ] Auth: sign up / sign in / sign out (magic link or email+password)
-- [ ] Row-level security on all tables
-- [ ] Supabase Edge Function: `generate-friend-stats` (calls Gemini, returns structured JSON)
-- [ ] Edge function handles bad input gracefully (returns error, doesn't crash)
+## Phase 0 — Project Setup ✅ DONE
+- [x] Vite + React + TypeScript scaffolded
+- [x] vite-plugin-pwa configured (manifest, service worker, installable)
+- [x] Tailwind CSS configured
+- [x] Framer Motion installed
+- [x] TensorFlow.js + face-landmarks-detection installed
+- [x] Supabase client configured
+- [x] Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+- [x] Vercel config (`vercel.json`) with SPA routing
+- [x] App loads without errors
+- [x] PWA install prompt works
 
 ---
 
-## Phase 2 — User Profile + Face Registration
-- [ ] Profile setup flow: username → selfie (front camera) → 5 personality questions → confirm
-- [ ] Selfie stored to Supabase Storage, URL saved to profile
-- [ ] Face fingerprint derived on-device from selfie using TensorFlow.js, stored to DB
-- [ ] On profile complete: call `generate-friend-stats` to pre-generate own Pokédex entry
-- [ ] Own entry persisted to DB — never regenerated unless user resets profile
-- [ ] Profile screen: shows own card, username, stats, type, moves
+## Phase 1 — Auth + Database ✅ DONE
+- [x] Supabase schema designed and migration run (`001_initial_schema.sql`)
+- [x] Auth: sign up / sign in / sign out (email+password)
+- [x] Row-level security on all tables
+- [x] Supabase Edge Function: `generate-friend-stats` (calls Gemini 2.0 Flash)
+- [x] Edge function handles bad input gracefully (returns 400, not crash)
 
 ---
 
-## Phase 3 — Camera Scan Screen
+## Phase 2 — User Profile + Face Registration ✅ DONE
+- [x] Profile setup flow: username → selfie → 5 personality questions → confirm
+- [x] Selfie stored to Supabase Storage
+- [x] Face descriptor derived on-device via TensorFlow.js
+- [x] On profile complete: call `generate-friend-stats` to pre-generate own entry
+- [x] Own entry persisted to DB
+- [x] Profile screen: shows own card, username, stats, type, moves
+
+---
+
+## Phase 3 — Camera Scan Screen 🔴 NEXT UP
+- [ ] Replace placeholder ScanScreen with real camera implementation
 - [ ] Camera turns on immediately when app loads (after auth)
 - [ ] `getUserMedia` with rear camera default, front camera toggle
 - [ ] TensorFlow.js face detection runs on video stream
 - [ ] When face detected + matched to a registered user:
   - [ ] Bottom pill animates up: "✦ Try capturing [username]?"
-  - [ ] Pill is tappable
+  - [ ] Pill is tappable → navigates to `/catch` with friend data
 - [ ] When no face: pill hidden, subtle hint text only
 - [ ] Unrecognized face: pill says "Unknown Trainer — invite them?"
 - [ ] Multiple faces: match the most prominent (largest bounding box)
@@ -51,37 +54,44 @@ Work through this in order. Check off as you go. Do not skip phases. Run TESTING
 
 ---
 
-## Phase 4 — Catch Screen
-- [ ] Tapping the pill transitions to catch screen (slide up or fade)
-- [ ] Catch screen is full-screen, Pokémon GO encounter layout (see DESIGN.md)
-- [ ] Environment background: grassy field image (see ASSETS.md for source)
-- [ ] Friend's photo rendered as their "sprite" — positioned center-lower screen
-- [ ] Name + CP pill floating above their photo
-- [ ] Pokéball rendered at bottom center
-- [ ] Swipe-up gesture on Pokéball initiates throw:
-  - [ ] Ball follows swipe direction/speed as a physics arc
-  - [ ] Rotation during flight
-  - [ ] Ball travels toward friend photo
-- [ ] On arrival: friend photo "absorbed" (scale down + flash)
-- [ ] Wobble animation x3
-- [ ] RNG catch check runs (with modifiers — never caught, already caught count, etc.)
-- [ ] **Fail:** ball bursts, friend photo pops back, "escaped" message, stays on catch screen
-- [ ] **Success:** ball snaps shut → star particles → white flash → transition to loading screen
+## Phase 4 — Catch Screen ✅ PORTED (needs integration)
+Catch screen components are in `frienddex/src/components/catch/` and `frienddex/src/screens/CatchScreen.tsx`. Route is `/catch`.
+
+Remaining integration work:
+- [ ] Wire ScanScreen pill tap → navigate to `/catch` with real friend data (not mock)
+- [ ] Connect catch success → call `generate-friend-stats` edge function for target
+- [ ] Save caught friend to `caught_friends` table on success
+- [ ] Block catching someone already in your Frienddex
+- [ ] Block catching yourself
+- [ ] Navigate to loading/reveal screen after success transition
+
+Already working:
+- [x] Full-screen Pokémon GO encounter layout
+- [x] Environment background (CSS fallback)
+- [x] Friend photo as sprite with type-colored border
+- [x] Name + CP pill floating above photo
+- [x] Pokéball at bottom center with swipe-up throw
+- [x] Ball physics arc with rotation during flight
+- [x] Friend photo "absorbed" animation
+- [x] Wobble animation x3 with decreasing amplitude
+- [x] RNG catch check with modifiers
+- [x] Fail: ball bursts, "escaped" message, stays on catch screen
+- [x] Success: ball snaps, star particles, white flash
 
 ---
 
 ## Phase 5 — Stat Generation + Reveal
 - [ ] Loading screen: spinning Pokéball, rotating flavor text lines
 - [ ] Call `generate-friend-stats` edge function with target's personality answers
-- [ ] Gemini prompt returns: primaryType, secondaryType, CP, stats (6), moves (4), description, flavorText
 - [ ] Parse and validate response — handle malformed JSON gracefully
-- [ ] Save entry to `caught_friends` table
+- [ ] Save entry to `pokedex_entries` table
+- [ ] Save record to `caught_friends` table
 - [ ] Reveal screen:
-  - [ ] Friend's photo large, centered
+  - [ ] Friend's photo large, centered, type-colored glow border
   - [ ] Type badge(s) slide in
   - [ ] Stats animate up one by one
   - [ ] Moves appear with stagger
-  - [ ] "Added to your Frienddex!" 
+  - [ ] "Added to your Frienddex!"
   - [ ] Button: "View in Frienddex"
 
 ---
@@ -91,7 +101,7 @@ Work through this in order. Check off as you go. Do not skip phases. Run TESTING
 - [ ] Each card: photo, name, CP, type badge(s)
 - [ ] Empty state with instructions
 - [ ] Tap card → friend detail screen
-- [ ] Detail screen: full photo, name, types, Pokédex description, all 6 stats, all 4 moves
+- [ ] Detail screen: full photo, name, types, description, all 6 stats, all 4 moves
 - [ ] Sort: by date caught, by CP
 - [ ] Filter: by type
 
