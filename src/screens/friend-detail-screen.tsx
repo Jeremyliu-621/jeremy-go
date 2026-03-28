@@ -5,7 +5,7 @@ export default function FriendDetailScreen() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate("/frienddex", { replace: true });
+    navigate("/chuddex", { replace: true });
   }, [navigate]);
 
   return null;

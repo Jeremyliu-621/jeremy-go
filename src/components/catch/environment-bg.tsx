@@ -1,9 +1,6 @@
 /**
  * Illustrated environment background — coded CSS fallback.
  * Replace with real asset from ASSETS.md when available.
- *
- * Layers: sky gradient → sun glow → clouds → distant hills →
- *         midground grass → foreground grass + texture
  */
 export default function EnvironmentBg() {
   return (
@@ -12,21 +9,7 @@ export default function EnvironmentBg() {
       <div
         className="absolute inset-0"
         style={{
-          background: `
-            radial-gradient(circle at 72% 8%, rgba(255,235,140,0.35) 0%, transparent 35%),
-            linear-gradient(180deg,
-              #5AB3E8 0%,
-              #7EC8F0 18%,
-              #A4DAF4 32%,
-              #C5E8D8 42%,
-              #A8D5A0 48%,
-              #7DC370 54%,
-              #5FB050 62%,
-              #4DA043 72%,
-              #3C8A35 85%,
-              #2E7528 100%
-            )
-          `,
+          background: `linear-gradient(180deg, #5AB3E8 0%, #7EC8F0 30%, #A8D5A0 50%, #5FB050 70%, #3C8A35 100%)`,
         }}
       />
 
@@ -87,27 +70,6 @@ export default function EnvironmentBg() {
         />
       </svg>
 
-      {/* Midground grass texture — subtle stripes */}
-      <div
-        className="absolute bottom-0 left-0 right-0"
-        style={{
-          height: "52%",
-          background: `
-            repeating-linear-gradient(
-              92deg,
-              rgba(80,160,50,0.08) 0px,
-              transparent 2px,
-              transparent 18px
-            ),
-            repeating-linear-gradient(
-              88deg,
-              rgba(40,120,30,0.06) 0px,
-              transparent 1px,
-              transparent 24px
-            )
-          `,
-        }}
-      />
 
       {/* Foreground grass blades (bottom) */}
       <svg
@@ -132,16 +94,16 @@ export default function EnvironmentBg() {
         })}
       </svg>
 
-      {/* Light rays from sun position */}
+      {/* Sun highlight */}
       <div
         className="absolute"
         style={{
           top: "2%",
           right: "15%",
-          width: "200px",
-          height: "200px",
-          background:
-            "radial-gradient(circle, rgba(255,240,180,0.2) 0%, transparent 65%)",
+          width: "80px",
+          height: "80px",
+          borderRadius: "50%",
+          background: "rgba(255,240,180,0.2)",
           pointerEvents: "none",
         }}
       />

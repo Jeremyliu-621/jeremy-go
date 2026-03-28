@@ -10,14 +10,9 @@ export default function TopBar({ variant = "scan", onRunAway }: Props) {
 
   return (
     <div
-      className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
+      className="absolute top-0 left-0 right-0 z-40 flex items-start justify-between px-4"
       style={{
-        paddingTop: "env(safe-area-inset-top, 12px)",
-        height: "calc(env(safe-area-inset-top, 12px) + 56px)",
-        background:
-          variant === "scan"
-            ? "linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 100%)"
-            : "transparent",
+        paddingTop: "max(12px, env(safe-area-inset-top, 12px))",
       }}
     >
       {variant === "catch" ? (
@@ -32,7 +27,7 @@ export default function TopBar({ variant = "scan", onRunAway }: Props) {
           <span className="text-xs font-semibold text-white/90">Run</span>
         </button>
       ) : (
-        <span className="text-base font-extrabold tracking-wide text-white/90 drop-shadow">
+        <span className="text-base font-extrabold tracking-wide text-white/90">
           JEREMY GO!
         </span>
       )}

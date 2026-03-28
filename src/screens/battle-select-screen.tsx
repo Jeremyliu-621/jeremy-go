@@ -2,10 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/auth-context";
-import { fetchFrienddex, STAT_LABELS, STAT_ORDER, STAT_MAX } from "../lib/frienddex";
+import { fetchChuddex, STAT_LABELS, STAT_ORDER, STAT_MAX } from "../lib/chuddex";
 import PokeballSpinner from "../components/pokeball-spinner";
 import type { CaughtFriend, PokemonType } from "../types";
 import { TYPE_COLORS } from "../types";
+import DogFilter from "../components/dog-filter";
 
 const PX = "'Press Start 2P', monospace";
 
@@ -23,7 +24,7 @@ export default function BattleSelectScreen() {
 
   useEffect(() => {
     if (!user) return;
-    fetchFrienddex(user.id).then((data) => {
+    fetchChuddex(user.id).then((data) => {
       data.sort((a, b) => a.pokedexNumber - b.pokedexNumber);
       setFriends(data);
       setLoading(false);
@@ -86,7 +87,7 @@ export default function BattleSelectScreen() {
           className="text-center text-white"
           style={{ fontSize: 11, lineHeight: "2.2" }}
         >
-          You need at least 2 friends to battle. Go catch some more!
+          You need at least 2 entries in your Chuddex to battle. Go catch some more!
         </p>
         <motion.button
           whileTap={{ scale: 0.95 }}
@@ -323,14 +324,14 @@ function LeftDetail({
         className="flex items-center justify-between"
         style={{ fontSize: 11, color: "#505050", paddingBottom: 10 }}
       >
-        <span>{friend.primaryType.toUpperCase()} FRIEND</span>
+        <span>{friend.primaryType.toUpperCase()}</span>
         <span>#{pad3(friend.pokedexNumber)}</span>
       </div>
 
       {/* Photo frame */}
       <div className="flex justify-center" style={{ paddingBottom: 12 }}>
         <div
-          className="overflow-hidden"
+          className="relative overflow-hidden"
           style={{
             width: 110,
             height: 110,
@@ -341,12 +342,15 @@ function LeftDetail({
           }}
         >
           {friend.photoUrl ? (
-            <img
-              src={friend.photoUrl}
-              alt={friend.username}
-              className="h-full w-full object-cover"
-              draggable={false}
-            />
+            <>
+              <img
+                src={friend.photoUrl}
+                alt={friend.username}
+                className="h-full w-full object-cover"
+                draggable={false}
+              />
+              <DogFilter />
+            </>
           ) : (
             <div
               className="flex h-full w-full items-center justify-center text-white"

@@ -2,14 +2,15 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/auth-context";
-import { fetchFrienddex, STAT_LABELS, STAT_ORDER, STAT_MAX } from "../lib/frienddex";
+import { fetchChuddex, STAT_LABELS, STAT_ORDER, STAT_MAX } from "../lib/chuddex";
 import PokeballSpinner from "../components/pokeball-spinner";
 import type { CaughtFriend, PokemonType } from "../types";
 import { TYPE_COLORS } from "../types";
+import DogFilter from "../components/dog-filter";
 
 const PX = "'Press Start 2P', monospace";
 
-export default function FrienddexScreen() {
+export default function ChuddexScreen() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [friends, setFriends] = useState<CaughtFriend[]>([]);
@@ -19,7 +20,7 @@ export default function FrienddexScreen() {
 
   useEffect(() => {
     if (!user) return;
-    fetchFrienddex(user.id).then((data) => {
+    fetchChuddex(user.id).then((data) => {
       data.sort((a, b) => a.pokedexNumber - b.pokedexNumber);
       setFriends(data);
       setLoading(false);
@@ -67,7 +68,7 @@ export default function FrienddexScreen() {
         </span>
       </div>
 
-      {/* Device body — very thick red padding */}
+      {/* Device body */}
       <div
         className="flex min-h-0 flex-1"
         style={{ gap: 28, padding: 28 }}
@@ -91,7 +92,7 @@ export default function FrienddexScreen() {
                 style={{ fontSize: 12, color: "#888", lineHeight: "2.2" }}
                 className="text-center"
               >
-                Your Frienddex is empty. Go catch some friends!
+                Your Chuddex is empty. Go catch some people!
               </p>
             </div>
           )}
@@ -111,7 +112,7 @@ export default function FrienddexScreen() {
               letterSpacing: "0.05em",
             }}
           >
-            FRIENDDEX
+            CHUDDEX
           </div>
 
           {/* Selected name */}
@@ -254,14 +255,14 @@ function LeftDetail({
         className="flex items-center justify-between"
         style={{ fontSize: 11, color: "#505050", paddingBottom: 10 }}
       >
-        <span>{friend.primaryType.toUpperCase()} FRIEND</span>
+        <span>{friend.primaryType.toUpperCase()}</span>
         <span>#{pad3(friend.pokedexNumber)}</span>
       </div>
 
-      {/* Photo frame — small and centered */}
+      {/* Photo frame */}
       <div className="flex justify-center" style={{ paddingBottom: 12 }}>
         <div
-          className="overflow-hidden"
+          className="relative overflow-hidden"
           style={{
             width: 110,
             height: 110,
@@ -272,12 +273,15 @@ function LeftDetail({
           }}
         >
           {friend.photoUrl ? (
-            <img
-              src={friend.photoUrl}
-              alt={friend.username}
-              className="h-full w-full object-cover"
-              draggable={false}
-            />
+            <>
+              <img
+                src={friend.photoUrl}
+                alt={friend.username}
+                className="h-full w-full object-cover"
+                draggable={false}
+              />
+              <DogFilter />
+            </>
           ) : (
             <div
               className="flex h-full w-full items-center justify-center text-white"

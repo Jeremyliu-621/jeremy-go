@@ -31,7 +31,6 @@ export default function DetectionPill({ face, onTap }: Props) {
         >
           <button
             onClick={() => onTap(face)}
-            className="animate-pill-glow"
             style={{
               display: "flex",
               alignItems: "center",
@@ -39,23 +38,13 @@ export default function DetectionPill({ face, onTap }: Props) {
               padding: "14px 28px",
               borderRadius: "9999px",
               background: "rgba(30, 30, 30, 0.78)",
-              backdropFilter: "blur(16px) saturate(1.4)",
-              WebkitBackdropFilter: "blur(16px) saturate(1.4)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
               border: "1px solid rgba(255,255,255,0.12)",
               cursor: "pointer",
               pointerEvents: "auto",
             }}
           >
-            <span
-              style={{
-                fontSize: "18px",
-                lineHeight: 1,
-                filter: "drop-shadow(0 0 4px rgba(255,203,5,0.6))",
-              }}
-            >
-              ✦
-            </span>
-
             <span
               style={{
                 fontFamily: "'Poppins', sans-serif",
@@ -67,17 +56,9 @@ export default function DetectionPill({ face, onTap }: Props) {
               }}
             >
               {matched
-                ? `Try capturing ts chud?`
-                : "Unknown Trainer — invite them?"}
+                ? "Try capturing?"
+                : "Unknown — invite them?"}
             </span>
-
-            <motion.span
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              style={{ fontSize: "14px", opacity: 0.6 }}
-            >
-              ›
-            </motion.span>
           </button>
         </motion.div>
       )}

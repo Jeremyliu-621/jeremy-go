@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CaughtFriend, Move, PokemonType } from "../types";
 import { TYPE_COLORS } from "../types";
+import DogFilter from "../components/dog-filter";
 import {
   createBattlePokemon,
   calculateDamage,
@@ -429,7 +430,7 @@ function PokemonSprite({
   const typeColor = TYPE_COLORS[friend.primaryType];
   return (
     <div
-      className="overflow-hidden rounded-full"
+      className="relative overflow-hidden rounded-full"
       style={{
         width: size,
         height: size,
@@ -439,12 +440,15 @@ function PokemonSprite({
       }}
     >
       {friend.photoUrl ? (
-        <img
-          src={friend.photoUrl}
-          alt={friend.username}
-          className="h-full w-full object-cover"
-          style={{ transform: flipped ? "scaleX(-1)" : undefined }}
-        />
+        <>
+          <img
+            src={friend.photoUrl}
+            alt={friend.username}
+            className="h-full w-full object-cover"
+            style={{ transform: flipped ? "scaleX(-1)" : undefined }}
+          />
+          <DogFilter />
+        </>
       ) : (
         <div
           className="flex h-full w-full items-center justify-center text-white"

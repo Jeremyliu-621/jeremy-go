@@ -1,6 +1,7 @@
 import { motion, type Variants } from "framer-motion";
 import type { CatchPhase, FriendProfile } from "../../types";
 import { TYPE_COLORS } from "../../types";
+import DogFilter from "../dog-filter";
 
 const spriteVariants: Variants = {
   idle: { scale: 1, opacity: 1, y: 0 },
@@ -47,50 +48,49 @@ export default function FriendSprite({ friend, phase }: Props) {
         className="absolute"
         style={{
           bottom: "-8px",
-          width: "140px",
-          height: "20px",
+          width: "120px",
+          height: "16px",
           borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, transparent 70%)",
-          filter: "blur(3px)",
+          background: "rgba(0,0,0,0.2)",
+          filter: "blur(6px)",
         }}
       />
 
       {/* Friend photo circle */}
       <div
-        className="relative overflow-hidden rounded-full"
+        className="relative"
         style={{
           width: "min(130px, 28vw)",
           height: "min(130px, 28vw)",
-          border: `4px solid ${typeColor}`,
-          boxShadow: `0 0 20px ${typeColor}44, 0 8px 24px rgba(0,0,0,0.3)`,
         }}
       >
-        {friend.photoUrl ? (
-          <img
-            src={friend.photoUrl}
-            alt={friend.username}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div
-            className="flex h-full w-full items-center justify-center text-4xl font-extrabold"
-            style={{
-              background: `linear-gradient(135deg, ${typeColor}CC, ${typeColor}88)`,
-              color: "white",
-              textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            }}
-          >
-            {friend.username.charAt(0).toUpperCase()}
-          </div>
-        )}
-
-        {/* Subtle inner glow */}
         <div
-          className="absolute inset-0 rounded-full"
+          className="overflow-hidden rounded-full"
           style={{
-            boxShadow: `inset 0 0 20px ${typeColor}33`,
+            width: "100%",
+            height: "100%",
+            border: `4px solid ${typeColor}`,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
           }}
-        />
+        >
+          {friend.photoUrl ? (
+            <img
+              src={friend.photoUrl}
+              alt={friend.username}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div
+              className="flex h-full w-full items-center justify-center text-4xl font-extrabold text-white"
+              style={{
+                backgroundColor: typeColor,
+              }}
+            >
+              {friend.username ? friend.username.charAt(0).toUpperCase() : "?"}
+            </div>
+          )}
+        </div>
+        <DogFilter />
       </div>
     </motion.div>
   );

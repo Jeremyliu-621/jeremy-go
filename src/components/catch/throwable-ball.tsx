@@ -200,16 +200,10 @@ export default function ThrowableBall({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <defs>
-              <linearGradient id="trail-grad" x1="0%" y1="100%" x2="0%" y2="0%">
-                <stop offset="0%" stopColor="#FFCB05" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#FF4444" stopOpacity="0" />
-              </linearGradient>
-            </defs>
             <polyline
               points={trailPoints.map((p) => `${p.x},${p.y}`).join(" ")}
               fill="none"
-              stroke="url(#trail-grad)"
+              stroke="rgba(255,203,5,0.5)"
               strokeWidth="4"
               strokeLinecap="round"
               strokeLinejoin="round"

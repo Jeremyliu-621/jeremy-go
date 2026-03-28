@@ -134,7 +134,6 @@ export default function ScanScreen() {
             fontWeight: 300,
             color: "rgba(255, 255, 255, 0.92)",
             letterSpacing: "0.04em",
-            textShadow: "0 2px 12px rgba(0, 0, 0, 0.3)",
           }}
         >
           Rio De Janeiro
@@ -153,9 +152,8 @@ export default function ScanScreen() {
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-[var(--color-navy)]"
           >
-            <div className="text-5xl">📷</div>
             <p className="px-8 text-center text-sm font-medium text-white/70">
-              Camera access is required to scan for friends.
+              Camera access is required to scan.
               <br />
               Please enable it in your browser settings.
             </p>
@@ -206,11 +204,10 @@ export default function ScanScreen() {
               top: rect.top,
               width: rect.width,
               height: rect.height,
-              border: "2px solid #00ff88",
+              border: "2px solid rgba(255,255,255,0.5)",
               borderRadius: 8,
               zIndex: 15,
               pointerEvents: "none",
-              boxShadow: "0 0 8px rgba(0,255,136,0.4)",
             }}
           >
             <span
@@ -220,7 +217,7 @@ export default function ScanScreen() {
                 left: 0,
                 fontSize: 11,
                 fontWeight: 700,
-                color: "#00ff88",
+                color: "rgba(255,255,255,0.8)",
                 background: "rgba(0,0,0,0.5)",
                 padding: "2px 6px",
                 borderRadius: 4,
@@ -242,7 +239,7 @@ export default function ScanScreen() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ delay: 0.5 }}
-            className="animate-shimmer absolute z-10"
+            className="absolute z-10"
             style={{
               bottom: "max(80px, calc(env(safe-area-inset-bottom, 20px) + 50px))",
               left: 0,
@@ -251,11 +248,10 @@ export default function ScanScreen() {
               fontSize: "13px",
               fontWeight: 500,
               color: "rgba(255,255,255,0.5)",
-              textShadow: "0 1px 6px rgba(0,0,0,0.6)",
               letterSpacing: "0.02em",
             }}
           >
-            Point at a friend to capture them
+            Point at someone to capture them
           </motion.p>
         )}
       </AnimatePresence>

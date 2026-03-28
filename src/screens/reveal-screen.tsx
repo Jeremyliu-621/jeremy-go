@@ -11,10 +11,11 @@ import {
   STAT_MAX,
   FLAVOR_LOADING_LINES,
   type GeneratedStats,
-} from "../lib/frienddex";
+} from "../lib/chuddex";
 import PokeballSpinner from "../components/pokeball-spinner";
 import type { FriendProfile, PokemonType } from "../types";
 import { TYPE_COLORS } from "../types";
+import DogFilter from "../components/dog-filter";
 
 type RevealState = "loading" | "revealing" | "done" | "error";
 
@@ -39,9 +40,9 @@ export default function RevealScreen() {
     if (!friend || !user || hasStarted.current) return;
     hasStarted.current = true;
 
-    const run = () => {
+    const run = async () => {
       try {
-        const generated = generateFriendStats(friend.username);
+        const generated = await generateFriendStats(friend.username, friend.photoUrl);
         setStats(generated);
         setNickname(friend.username);
         setState("revealing");
@@ -54,7 +55,7 @@ export default function RevealScreen() {
       }
     };
 
-    setTimeout(run, 1800);
+    run();
   }, [friend, user]);
 
   const handleSave = async () => {
@@ -65,7 +66,7 @@ export default function RevealScreen() {
     try {
       const taken = await checkNameTaken(user.id, nickname.trim());
       if (taken) {
-        setNameError("That name is already in your Frienddex! Try a different one.");
+        setNameError("That name is already in your Chuddex! Try a different one.");
         setSaving(false);
         return;
       }
@@ -93,7 +94,7 @@ export default function RevealScreen() {
   if (!friend) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-[var(--color-navy)]">
-        <p className="text-white/50">No friend data.</p>
+        <p className="text-white/50">No data.</p>
       </div>
     );
   }
@@ -152,39 +153,41 @@ export default function RevealScreen() {
           transition={{ delay: 0.2 }}
           className="mb-6 text-sm font-bold uppercase tracking-widest text-white/40"
         >
-          New Frienddex Entry
+          New Chuddex Entry
         </motion.p>
 
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            type: "spring",
-            stiffness: 200,
-            damping: 15,
-            delay: 0.3,
-          }}
-          className="h-40 w-40 overflow-hidden rounded-full border-4"
-          style={{
-            borderColor: typeColor,
-            boxShadow: `0 0 40px ${typeColor}44`,
-          }}
-        >
-          {friend.photoUrl ? (
-            <img
-              src={friend.photoUrl}
-              alt={friend.username}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div
-              className="flex h-full w-full items-center justify-center text-4xl font-black text-white"
-              style={{ backgroundColor: typeColor + "66" }}
-            >
-              {friend.username.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </motion.div>
+        <div className="relative">
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 15,
+              delay: 0.3,
+            }}
+            className="h-40 w-40 overflow-hidden rounded-full border-4"
+            style={{
+              borderColor: typeColor,
+            }}
+          >
+            {friend.photoUrl ? (
+              <img
+                src={friend.photoUrl}
+                alt={friend.username}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div
+                className="flex h-full w-full items-center justify-center text-4xl font-black text-white"
+                style={{ backgroundColor: typeColor + "66" }}
+              >
+                {friend.username.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </motion.div>
+          <DogFilter />
+        </div>
 
         <motion.h2
           initial={{ opacity: 0, y: 10 }}
@@ -362,7 +365,7 @@ export default function RevealScreen() {
               animate={{ opacity: 1, scale: 1 }}
               className="mt-8 text-sm font-black uppercase tracking-wider text-green-400"
             >
-              Added to your Frienddex!
+              Added to your Chuddex!
             </motion.p>
 
             <motion.button
@@ -370,10 +373,10 @@ export default function RevealScreen() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/frienddex", { replace: true })}
+              onClick={() => navigate("/chuddex", { replace: true })}
               className="mt-6 rounded-full bg-[var(--color-primary)] px-8 py-3 text-sm font-bold text-white"
             >
-              View Frienddex
+              View Chuddex
             </motion.button>
 
             <motion.button

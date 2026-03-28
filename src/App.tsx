@@ -6,7 +6,7 @@ import HomeScreen from "./screens/home-screen";
 import ScanScreen from "./screens/scan-screen";
 import CatchScreen from "./screens/catch-screen";
 import RevealScreen from "./screens/reveal-screen";
-import FrienddexScreen from "./screens/frienddex-screen";
+import ChuddexScreen from "./screens/chuddex-screen";
 import FriendDetailScreen from "./screens/friend-detail-screen";
 import BattleSelectScreen from "./screens/battle-select-screen";
 import BattleScreen from "./screens/battle-screen";
@@ -20,8 +20,8 @@ function AppRoutes() {
         <Route path="/scan" element={<ScanScreen />} />
         <Route path="/catch" element={<CatchScreen />} />
         <Route path="/reveal" element={<RevealScreen />} />
-        <Route path="/frienddex" element={<FrienddexScreen />} />
-        <Route path="/frienddex/:id" element={<FriendDetailScreen />} />
+        <Route path="/chuddex" element={<ChuddexScreen />} />
+        <Route path="/chuddex/:id" element={<FriendDetailScreen />} />
         <Route path="/battle" element={<BattleSelectScreen />} />
         <Route path="/battle/fight" element={<BattleScreen />} />
       </Routes>

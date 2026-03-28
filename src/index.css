@@ -60,34 +60,10 @@ html, body, #root {
   100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
 }
 
-@keyframes shimmer-text {
-  0%   { opacity: 0.5; }
-  50%  { opacity: 1; }
-  100% { opacity: 0.5; }
-}
-
-@keyframes pill-glow {
-  0%   { box-shadow: 0 0 12px rgba(255, 203, 5, 0.0); }
-  50%  { box-shadow: 0 0 20px rgba(255, 203, 5, 0.35); }
-  100% { box-shadow: 0 0 12px rgba(255, 203, 5, 0.0); }
-}
-
-@keyframes float-up {
-  0%   { transform: translateY(0); }
-  50%  { transform: translateY(-6px); }
-  100% { transform: translateY(0); }
-}
-
 @keyframes crack-burst {
-  0%   { transform: scale(1); opacity: 1; filter: brightness(1); }
-  30%  { transform: scale(1.15); opacity: 1; filter: brightness(1.5); }
-  100% { transform: scale(1.8); opacity: 0; filter: brightness(2); }
-}
-
-@keyframes white-flash {
-  0%   { opacity: 0; }
-  20%  { opacity: 1; }
-  100% { opacity: 0; }
+  0%   { transform: scale(1); opacity: 1; }
+  30%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
 }
 
 @keyframes ball-shadow-wobble {
@@ -106,14 +82,3 @@ html, body, #root {
   animation: pokeball-spin 2s linear infinite;
 }
 
-.animate-shimmer {
-  animation: shimmer-text 2s ease-in-out infinite;
-}
-
-.animate-pill-glow {
-  animation: pill-glow 2.5s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float-up 3s ease-in-out infinite;
-}

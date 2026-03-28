@@ -17,13 +17,12 @@ export default function NameCpPill({ friend, phase }: Props) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ type: "spring", stiffness: 260, damping: 24 }}
-          className="animate-float flex items-center gap-2.5 rounded-full px-5 py-2"
+          className="flex items-center gap-2.5 rounded-full px-5 py-2"
           style={{
             background: "rgba(30, 30, 30, 0.78)",
-            backdropFilter: "blur(14px) saturate(1.3)",
-            WebkitBackdropFilter: "blur(14px) saturate(1.3)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
             border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
           }}
         >
           {/* Pokéball icon */}
@@ -38,14 +37,14 @@ export default function NameCpPill({ friend, phase }: Props) {
             className="text-sm font-bold text-white"
             style={{ letterSpacing: "0.01em" }}
           >
-            {friend.username}
+            {friend.username || "???"}
           </span>
 
           <span className="text-xs font-medium text-white/40">/</span>
 
           <span
             className="text-sm font-extrabold"
-            style={{ color: "#FFCB05", textShadow: "0 0 8px rgba(255,203,5,0.3)" }}
+            style={{ color: "#FFCB05" }}
           >
             CP {friend.cp}
           </span>

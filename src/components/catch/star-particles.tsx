@@ -49,7 +49,6 @@ export default function StarParticles({ active }: { active: boolean }) {
               height: `${p.size}px`,
               borderRadius: p.id % 3 === 0 ? "2px" : "50%",
               background: `hsl(${p.hue}, 90%, 60%)`,
-              boxShadow: `0 0 ${p.size * 2}px hsl(${p.hue}, 90%, 50%)`,
               transform: "translate(-50%, -50%)",
               ["--tx" as string]: `${tx}px`,
               ["--ty" as string]: `${ty}px`,
