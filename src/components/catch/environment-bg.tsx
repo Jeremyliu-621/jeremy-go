@@ -31,15 +31,44 @@ export default function EnvironmentBg() {
       />
 
       {/* Clouds */}
-      <svg className="absolute top-0 left-0 w-full" viewBox="0 0 400 120" preserveAspectRatio="none" style={{ height: "30%", opacity: 0.7 }}>
+      <svg
+        className="absolute top-0 left-0 w-full"
+        viewBox="0 0 400 120"
+        preserveAspectRatio="none"
+        style={{ height: "30%", opacity: 0.7 }}
+      >
         <ellipse cx="60" cy="35" rx="55" ry="18" fill="rgba(255,255,255,0.5)" />
         <ellipse cx="90" cy="28" rx="40" ry="16" fill="rgba(255,255,255,0.6)" />
-        <ellipse cx="40" cy="30" rx="30" ry="14" fill="rgba(255,255,255,0.45)" />
+        <ellipse
+          cx="40"
+          cy="30"
+          rx="30"
+          ry="14"
+          fill="rgba(255,255,255,0.45)"
+        />
 
-        <ellipse cx="280" cy="45" rx="45" ry="15" fill="rgba(255,255,255,0.4)" />
-        <ellipse cx="310" cy="40" rx="35" ry="13" fill="rgba(255,255,255,0.5)" />
+        <ellipse
+          cx="280"
+          cy="45"
+          rx="45"
+          ry="15"
+          fill="rgba(255,255,255,0.4)"
+        />
+        <ellipse
+          cx="310"
+          cy="40"
+          rx="35"
+          ry="13"
+          fill="rgba(255,255,255,0.5)"
+        />
 
-        <ellipse cx="180" cy="20" rx="25" ry="10" fill="rgba(255,255,255,0.3)" />
+        <ellipse
+          cx="180"
+          cy="20"
+          rx="25"
+          ry="10"
+          fill="rgba(255,255,255,0.3)"
+        />
       </svg>
 
       {/* Distant tree line */}
@@ -111,7 +140,8 @@ export default function EnvironmentBg() {
           right: "15%",
           width: "200px",
           height: "200px",
-          background: "radial-gradient(circle, rgba(255,240,180,0.2) 0%, transparent 65%)",
+          background:
+            "radial-gradient(circle, rgba(255,240,180,0.2) 0%, transparent 65%)",
           pointerEvents: "none",
         }}
       />

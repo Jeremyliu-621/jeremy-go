@@ -89,7 +89,7 @@ export default function CatchScreen() {
 
       <div
         className="absolute left-0 right-0 z-10 flex flex-col items-center"
-        style={{ top: "16%", pointerEvents: "none" }}
+        style={{ top: "24%", pointerEvents: "none" }}
       >
         <NameCpPill friend={friend} phase={phase} />
         <div className="h-3" />
@@ -167,7 +167,7 @@ export default function CatchScreen() {
           <motion.div
             key="burst-effect"
             className="pointer-events-none absolute left-1/2 z-40 -translate-x-1/2"
-            style={{ top: "35%" }}
+            style={{ top: "43%" }}
             initial={{ scale: 0.5, opacity: 1 }}
             animate={{ scale: 2.5, opacity: 0 }}
             exit={{ opacity: 0 }}

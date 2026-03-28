@@ -68,7 +68,9 @@ export default function Pokeball3D({
 
   return (
     <group ref={groupRef} scale={pulse ? undefined : autoScale}>
-      <primitive object={clonedScene} />
+      <group rotation={[0, Math.PI, 0]}>
+        <primitive object={clonedScene} />
+      </group>
     </group>
   );
 }
