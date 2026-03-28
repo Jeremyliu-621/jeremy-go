@@ -5,8 +5,7 @@ import type {
   FriendProfile,
   Move,
 } from "../types";
-
-const STORAGE_KEY = "frienddex_caught";
+import { supabase } from "./supabase";
 
 export interface GeneratedStats {
   primaryType: PokemonType;
@@ -18,17 +17,38 @@ export interface GeneratedStats {
   flavorText: string;
 }
 
-function loadStorage(): CaughtFriend[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+interface DbRow {
+  id: string;
+  catcher_id: string;
+  friend_id: string;
+  username: string;
+  photo_url: string;
+  cp: number;
+  primary_type: string;
+  secondary_type: string | null;
+  caught_at: string;
+  stats: FriendStats;
+  moves: Move[];
+  description: string;
+  flavor_text: string;
+  pokedex_number: number;
 }
 
-function saveStorage(friends: CaughtFriend[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(friends));
+function rowToCaughtFriend(row: DbRow): CaughtFriend {
+  return {
+    id: row.id,
+    username: row.username,
+    photoUrl: row.photo_url,
+    cp: row.cp,
+    primaryType: row.primary_type as PokemonType,
+    secondaryType: row.secondary_type as PokemonType | undefined,
+    caughtAt: row.caught_at,
+    stats: row.stats,
+    moves: row.moves,
+    description: row.description,
+    flavorText: row.flavor_text,
+    pokedexNumber: row.pokedex_number,
+  };
 }
 
 const ALL_TYPES: PokemonType[] = [
@@ -204,58 +224,82 @@ export function generateFriendStats(username: string): GeneratedStats {
   };
 }
 
-export function checkAlreadyCaught(
-  _catcherId: string,
-  targetUserId: string,
-): boolean {
-  const friends = loadStorage();
-  return friends.some((f) => f.id === targetUserId);
+export async function checkNameTaken(
+  catcherId: string,
+  name: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("caught_friends")
+    .select("id")
+    .eq("catcher_id", catcherId)
+    .eq("username", name)
+    .maybeSingle();
+  return !!data;
 }
 
-export function saveCatch(
-  _catcherId: string,
+export async function saveCatch(
+  catcherId: string,
   friend: FriendProfile,
   statsData: GeneratedStats,
-): CaughtFriend {
-  const friends = loadStorage();
+  nickname: string,
+): Promise<CaughtFriend> {
+  const { count } = await supabase
+    .from("caught_friends")
+    .select("*", { count: "exact", head: true })
+    .eq("catcher_id", catcherId);
 
-  const existing = friends.findIndex((f) => f.id === friend.id);
+  const nextNumber = (count ?? 0) + 1;
 
-  const caught: CaughtFriend = {
-    id: friend.id,
-    username: friend.username,
-    photoUrl: friend.photoUrl,
-    cp: statsData.cp,
-    primaryType: statsData.primaryType,
-    secondaryType: statsData.secondaryType ?? undefined,
-    caughtAt: new Date().toISOString(),
-    stats: statsData.stats,
-    moves: statsData.moves,
-    description: statsData.description,
-    flavorText: statsData.flavorText,
-    pokedexNumber: existing >= 0 ? friends[existing].pokedexNumber : friends.length + 1,
-  };
+  const { data, error } = await supabase
+    .from("caught_friends")
+    .insert({
+      catcher_id: catcherId,
+      friend_id: friend.id,
+      username: nickname,
+      photo_url: friend.photoUrl,
+      cp: statsData.cp,
+      primary_type: statsData.primaryType,
+      secondary_type: statsData.secondaryType,
+      stats: statsData.stats,
+      moves: statsData.moves,
+      description: statsData.description,
+      flavor_text: statsData.flavorText,
+      pokedex_number: nextNumber,
+    })
+    .select()
+    .single();
 
-  if (existing >= 0) {
-    friends[existing] = caught;
-  } else {
-    friends.push(caught);
+  if (error || !data) {
+    throw new Error(error?.message ?? "Failed to save catch");
   }
 
-  saveStorage(friends);
-  return caught;
+  return rowToCaughtFriend(data as DbRow);
 }
 
-export function fetchFrienddex(_catcherId: string): CaughtFriend[] {
-  return loadStorage().sort(
-    (a, b) => new Date(b.caughtAt).getTime() - new Date(a.caughtAt).getTime(),
-  );
+export async function fetchFrienddex(
+  catcherId: string,
+): Promise<CaughtFriend[]> {
+  const { data, error } = await supabase
+    .from("caught_friends")
+    .select("*")
+    .eq("catcher_id", catcherId)
+    .order("caught_at", { ascending: false });
+
+  if (error || !data) return [];
+  return (data as DbRow[]).map(rowToCaughtFriend);
 }
 
-export function fetchFriendDetail(
-  _catcherId: string,
-  caughtUserId: string,
-): CaughtFriend | null {
-  const friends = loadStorage();
-  return friends.find((f) => f.id === caughtUserId) ?? null;
+export async function fetchFriendDetail(
+  catcherId: string,
+  entryId: string,
+): Promise<CaughtFriend | null> {
+  const { data, error } = await supabase
+    .from("caught_friends")
+    .select("*")
+    .eq("catcher_id", catcherId)
+    .eq("id", entryId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return rowToCaughtFriend(data as DbRow);
 }

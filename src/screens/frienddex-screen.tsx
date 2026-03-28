@@ -19,8 +19,10 @@ export default function FrienddexScreen() {
 
   useEffect(() => {
     if (!user) return;
-    setFriends(fetchFrienddex(user.id));
-    setLoading(false);
+    fetchFrienddex(user.id).then((data) => {
+      setFriends(data);
+      setLoading(false);
+    });
   }, [user]);
 
   const sorted = [...friends].sort((a, b) => {

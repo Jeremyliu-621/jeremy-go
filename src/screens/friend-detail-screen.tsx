@@ -13,7 +13,7 @@ import type { CaughtFriend, PokemonType } from "../types";
 import { TYPE_COLORS } from "../types";
 
 export default function FriendDetailScreen() {
-  const { friendId } = useParams<{ friendId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -23,10 +23,12 @@ export default function FriendDetailScreen() {
   const [loading, setLoading] = useState(!passedFriend);
 
   useEffect(() => {
-    if (passedFriend || !user || !friendId) return;
-    setFriend(fetchFriendDetail(user.id, friendId));
-    setLoading(false);
-  }, [user, friendId, passedFriend]);
+    if (passedFriend || !user || !id) return;
+    fetchFriendDetail(user.id, id).then((data) => {
+      setFriend(data);
+      setLoading(false);
+    });
+  }, [user, id, passedFriend]);
 
   if (loading) {
     return (
