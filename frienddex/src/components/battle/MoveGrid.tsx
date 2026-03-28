@@ -1,6 +1,14 @@
 import { motion } from 'framer-motion';
 import { TYPE_COLORS } from '../../lib/constants';
-import type { Move } from '../../types';
+import type { PokemonType } from '../../types/database';
+
+interface Move {
+  name: string;
+  type: PokemonType;
+  category: 'Physical' | 'Special' | 'Status';
+  power: number;
+  description: string;
+}
 
 interface MoveGridProps {
   moves: [Move, Move, Move, Move];

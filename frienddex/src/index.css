@@ -105,3 +105,42 @@
   70% { box-shadow: 0 0 0 20px rgba(255, 203, 5, 0); }
   100% { box-shadow: 0 0 0 0 rgba(255, 203, 5, 0); }
 }
+
+@keyframes target-ring-pulse {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  50%  { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1);   opacity: 0.7; }
+}
+
+@keyframes star-particle {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+@keyframes ball-shadow-wobble {
+  0%   { transform: scaleX(1); }
+  25%  { transform: scaleX(0.85); }
+  50%  { transform: scaleX(1); }
+  75%  { transform: scaleX(0.9); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes float-up {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes pill-glow {
+  0%   { box-shadow: 0 0 12px rgba(255, 203, 5, 0.0); }
+  50%  { box-shadow: 0 0 20px rgba(255, 203, 5, 0.35); }
+  100% { box-shadow: 0 0 12px rgba(255, 203, 5, 0.0); }
+}
+
+.animate-float {
+  animation: float-up 3s ease-in-out infinite;
+}
+
+.animate-pill-glow {
+  animation: pill-glow 2.5s ease-in-out infinite;
+}
