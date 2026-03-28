@@ -35,7 +35,7 @@ export default function TopBar({ variant = "scan", onRunAway }: Props) {
           className="text-white/90 drop-shadow"
           style={{ fontSize: 12 }}
         >
-          JEREMY GO!
+          CHUD GO!
         </span>
       )}
 
