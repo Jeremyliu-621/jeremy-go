@@ -13,6 +13,7 @@ import {
   type BattlePokemon,
   type BattlePhase,
 } from "../lib/battle";
+import { getTauntPair } from "../lib/battleTaunts";
 import { useAudio } from "../contexts/audio-context";
 
 interface TurnResult {
@@ -38,7 +39,25 @@ export default function BattleScreen() {
   const [narrative, setNarrative] = useState("");
   const [playerShake, setPlayerShake] = useState(false);
   const [opponentShake, setOpponentShake] = useState(false);
+  const [playerSpeech, setPlayerSpeech] = useState<string | null>(null);
+  const [opponentSpeech, setOpponentSpeech] = useState<string | null>(null);
   const initialized = useRef(false);
+  const tauntClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTauntsSoon = useCallback(() => {
+    if (tauntClearRef.current) clearTimeout(tauntClearRef.current);
+    tauntClearRef.current = setTimeout(() => {
+      setPlayerSpeech(null);
+      setOpponentSpeech(null);
+      tauntClearRef.current = null;
+    }, 5500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (tauntClearRef.current) clearTimeout(tauntClearRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!state?.player || !state?.opponent || initialized.current) return;
@@ -87,6 +106,20 @@ export default function BattleScreen() {
 
       const newHp = Math.max(0, defender.currentHp - damage);
 
+      if (damage > 0) {
+        const { attacker: atkLine, defender: defLine } = getTauntPair(
+          damage * 0.01 + effectiveness + Math.random(),
+        );
+        if (attackerSide === "player") {
+          setPlayerSpeech(atkLine);
+          setOpponentSpeech(defLine);
+        } else {
+          setOpponentSpeech(atkLine);
+          setPlayerSpeech(defLine);
+        }
+        clearTauntsSoon();
+      }
+
       if (attackerSide === "player") {
         setOpponent((prev) => (prev ? { ...prev, currentHp: newHp } : prev));
       } else {
@@ -111,7 +144,7 @@ export default function BattleScreen() {
         defenderHp: newHp,
       };
     },
-    [],
+    [clearTauntsSoon],
   );
 
   const handleFight = useCallback(
@@ -223,14 +256,18 @@ export default function BattleScreen() {
         </div>
 
         {/* Opponent sprite — on the far platform (upper-right) */}
-        <motion.div
-          animate={opponentShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-          transition={{ duration: 0.4 }}
-          className="absolute z-10"
-          style={{ top: "18%", right: "12%" }}
+        <div
+          className="absolute z-10 flex flex-col items-end gap-1"
+          style={{ top: "10%", right: "8%" }}
         >
-          <PokemonSprite friend={opponent.friend} size={96} flipped />
-        </motion.div>
+          <TauntBubble text={opponentSpeech} side="opponent" />
+          <motion.div
+            animate={opponentShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+            transition={{ duration: 0.4 }}
+          >
+            <PokemonSprite friend={opponent.friend} size={96} flipped />
+          </motion.div>
+        </div>
 
         {/* Player info box (bottom-right, like classic Pokemon) */}
         <div className="absolute right-3 bottom-3 z-10">
@@ -244,14 +281,18 @@ export default function BattleScreen() {
         </div>
 
         {/* Player sprite — on the near platform (lower-left) */}
-        <motion.div
-          animate={playerShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-          transition={{ duration: 0.4 }}
-          className="absolute z-10"
+        <div
+          className="absolute z-10 flex flex-col items-start gap-1"
           style={{ bottom: "8%", left: "8%" }}
         >
-          <PokemonSprite friend={player.friend} size={120} />
-        </motion.div>
+          <TauntBubble text={playerSpeech} side="player" />
+          <motion.div
+            animate={playerShake ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+            transition={{ duration: 0.4 }}
+          >
+            <PokemonSprite friend={player.friend} size={120} />
+          </motion.div>
+        </div>
       </div>
 
       {/* === BOTTOM PANEL (~38%) === */}
@@ -307,6 +348,44 @@ export default function BattleScreen() {
 /* ── Sub-components ── */
 
 const PX_FONT = "'Press Start 2P', monospace";
+
+function TauntBubble({
+  text,
+  side,
+}: {
+  text: string | null;
+  side: "player" | "opponent";
+}) {
+  if (!text) return null;
+
+  return (
+    <div className="relative mb-2 w-full max-w-[min(92vw,320px)]">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={text + side}
+          role="status"
+          initial={{ opacity: 0, scale: 0.88, y: 6 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.92 }}
+          transition={{ type: "spring", stiffness: 520, damping: 28 }}
+          className={`pointer-events-none relative z-30 w-max max-w-[min(92vw,320px)] rounded-lg border-4 border-[#2a2a2a] bg-[#fffef5] px-5 py-4 shadow-[4px_6px_0_#1a1a1a,0_8px_24px_rgba(0,0,0,0.45)] ${
+            side === "opponent" ? "ml-auto" : ""
+          }`}
+          style={{
+            fontFamily: PX_FONT,
+            fontSize: "clamp(11px, 3.2vw, 16px)",
+            lineHeight: 1.45,
+            color: "#111",
+            textShadow:
+              "0 1px 0 #fff, 0 0 2px rgba(255,255,255,0.9), 1px 1px 0 rgba(0,0,0,0.15)",
+          }}
+        >
+          {text}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function HpBar({ current, max }: { current: number; max: number }) {
   const pct = Math.max(0, (current / max) * 100);
