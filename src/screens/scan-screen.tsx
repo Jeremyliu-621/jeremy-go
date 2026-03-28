@@ -244,7 +244,7 @@ export default function ScanScreen() {
             transition={{ delay: 0.5 }}
             className="animate-shimmer absolute z-10"
             style={{
-              bottom: "max(40px, env(safe-area-inset-bottom, 20px))",
+              bottom: "max(80px, calc(env(safe-area-inset-bottom, 20px) + 50px))",
               left: 0,
               right: 0,
               textAlign: "center",
@@ -259,6 +259,24 @@ export default function ScanScreen() {
           </motion.p>
         )}
       </AnimatePresence>
+
+      {/* Back to home button */}
+      <motion.button
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate("/")}
+        className="absolute z-10 rounded-full px-5 py-2 text-sm font-bold text-white backdrop-blur-sm"
+        style={{
+          bottom: "max(28px, env(safe-area-inset-bottom, 16px))",
+          left: "16px",
+          background: "rgba(255,255,255,0.15)",
+          border: "1px solid rgba(255,255,255,0.2)",
+        }}
+      >
+        Home
+      </motion.button>
 
       {/* Detection pill */}
       <DetectionPill face={topFace} onTap={handleCapture} />
