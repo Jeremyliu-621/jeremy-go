@@ -143,7 +143,7 @@ export default function HomeScreen() {
               letterSpacing: "0.05em",
             }}
           >
-            JeremyGO
+            ChudGO
           </h1>
         </motion.div>
 
