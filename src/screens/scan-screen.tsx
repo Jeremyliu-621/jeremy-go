@@ -118,7 +118,7 @@ export default function ScanScreen() {
       <div
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
-          background: "linear-gradient(135deg, rgba(75, 20, 120, 0.38) 0%, rgba(170, 30, 110, 0.35) 60%, rgba(200, 45, 90, 0.32) 100%)",
+          background: "linear-gradient(135deg, rgba(50, 5, 130, 0.45) 0%, rgba(150, 30, 100, 0.35) 50%, rgba(220, 50, 70, 0.40) 100%)",
           mixBlendMode: "color",
         }}
       />
