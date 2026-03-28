@@ -86,7 +86,7 @@ export default function ThrowableBall({
       const accuracy =
         normalizedSpeed * 0.3 + straightness * 0.5 + swipeLength * 0.2;
 
-      const targetY = -(vh * 0.63);
+      const targetY = -(vh * 0.55);
       const lateralDrift = dx * 0.2;
       const flightDuration = 0.5 + (1 - normalizedSpeed) * 0.35;
 
@@ -201,13 +201,7 @@ export default function ThrowableBall({
             transition={{ duration: 0.3 }}
           >
             <defs>
-              <linearGradient
-                id="trail-grad"
-                x1="0%"
-                y1="100%"
-                x2="0%"
-                y2="0%"
-              >
+              <linearGradient id="trail-grad" x1="0%" y1="100%" x2="0%" y2="0%">
                 <stop offset="0%" stopColor="#FFCB05" stopOpacity="0.8" />
                 <stop offset="100%" stopColor="#FF4444" stopOpacity="0" />
               </linearGradient>
@@ -259,17 +253,13 @@ export default function ThrowableBall({
           whileTap={{ scale: 1.08 }}
         >
           <Canvas
-            camera={{ position: [0, 0.3, 2.5], fov: 50 }}
+            camera={{ position: [0, 0, 2.5], fov: 50 }}
             dpr={[1, 2]}
             style={{ width: "100%", height: "100%", pointerEvents: "none" }}
             gl={{ alpha: true, antialias: true }}
           >
             <ambientLight intensity={0.6} />
-            <directionalLight
-              position={[3, 5, 4]}
-              intensity={1.2}
-              castShadow
-            />
+            <directionalLight position={[3, 5, 4]} intensity={1.2} castShadow />
             <directionalLight
               position={[-2, 3, -2]}
               intensity={0.3}
@@ -353,8 +343,7 @@ export default function ThrowableBall({
 }
 
 function DragPowerBar({ power }: { power: number }) {
-  const color =
-    power < 0.3 ? "#78C850" : power < 0.7 ? "#F8D030" : "#F08030";
+  const color = power < 0.3 ? "#78C850" : power < 0.7 ? "#F8D030" : "#F08030";
 
   return (
     <motion.div

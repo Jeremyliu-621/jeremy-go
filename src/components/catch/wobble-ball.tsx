@@ -79,7 +79,7 @@ export default function WobbleBall({
   return (
     <div
       className="absolute left-1/2 z-30 -translate-x-1/2"
-      style={{ top: "35%", transform: "translate(-50%, -50%)" }}
+      style={{ top: "43%", transform: "translate(-50%, -50%)" }}
     >
       <div
         className="absolute left-1/2 -translate-x-1/2"
@@ -102,7 +102,7 @@ export default function WobbleBall({
         style={{ width: WOBBLE_BALL_SIZE, height: WOBBLE_BALL_SIZE }}
       >
         <Canvas
-            camera={{ position: [0, 0.3, 2.5], fov: 50 }}
+            camera={{ position: [0, 0, 2.5], fov: 50 }}
           dpr={[1, 2]}
           style={{ width: "100%", height: "100%" }}
           gl={{ alpha: true, antialias: true }}
