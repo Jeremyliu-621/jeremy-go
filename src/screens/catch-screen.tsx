@@ -43,16 +43,19 @@ export default function CatchScreen() {
     if (result.caught) {
       setPhase("success");
       if (navigator.vibrate) navigator.vibrate([80, 40, 120]);
+      setTimeout(() => {
+        navigate("/reveal", { state: { friend }, replace: true });
+      }, 2400);
     } else {
       setPhase("escaped");
       setMessage(`Oh no! ${friend.username} escaped!`);
       setTimeout(() => setMessage(null), 2200);
     }
-  }, [friend.username]);
+  }, [friend, navigate]);
 
   const handleSuccessAnimDone = useCallback(() => {
-    setPhase("transitioning");
-  }, []);
+    navigate("/reveal", { state: { friend }, replace: true });
+  }, [navigate, friend]);
 
   const handleRunAway = useCallback(() => {
     navigate("/", { replace: true });
@@ -147,6 +150,43 @@ export default function CatchScreen() {
             <p className="whitespace-nowrap text-center text-sm font-bold text-white">
               {message}
             </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Success message + tap to continue */}
+      <AnimatePresence>
+        {(phase === "success" || phase === "transitioning") && (
+          <motion.div
+            key="success-banner"
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.4 }}
+            className="absolute left-1/2 z-50 -translate-x-1/2 flex flex-col items-center gap-3"
+            style={{ top: "30%" }}
+          >
+            <p
+              className="rounded-2xl px-8 py-3 text-lg font-black text-white"
+              style={{
+                background: "rgba(30, 30, 30, 0.85)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+              }}
+            >
+              Gotcha! {friend.username} was caught!
+            </p>
+            <button
+              onClick={() => navigate("/reveal", { state: { friend }, replace: true })}
+              className="animate-shimmer rounded-full px-6 py-2 text-sm font-semibold text-white/70"
+              style={{
+                background: "rgba(255,255,255,0.1)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              Tap to continue
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

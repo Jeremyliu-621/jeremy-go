@@ -24,35 +24,34 @@ export default function WobbleBall({
     if (phase !== "wobbling" || hasRun.current) return;
     hasRun.current = true;
 
-    (async () => {
-      const amplitudes = [28, 20, 12];
-      for (let i = 0; i < wobbleCount; i++) {
-        const amp = amplitudes[i] ?? 10;
-        await controls.start({
+    const amplitudes = [28, 20, 12];
+    const wobbleDuration = 650;
+    const pauseBetween = 300;
+
+    for (let i = 0; i < wobbleCount; i++) {
+      const amp = amplitudes[i] ?? 10;
+      const delay = i * (wobbleDuration + pauseBetween);
+      setTimeout(() => {
+        controls.start({
           rotate: [0, amp, -amp * 0.8, amp * 0.5, -amp * 0.3, 0],
           y: [0, -3, 0, -2, 0],
-          transition: {
-            duration: 0.65,
-            ease: "easeInOut",
-          },
+          transition: { duration: 0.65, ease: "easeInOut" },
         });
-        await new Promise((r) => setTimeout(r, 300));
-      }
-      onWobbleComplete();
-    })();
+      }, delay);
+    }
+
+    const totalTime = wobbleCount * (wobbleDuration + pauseBetween);
+    setTimeout(() => onWobbleComplete(), totalTime);
   }, [phase, wobbleCount, controls, onWobbleComplete]);
 
   useEffect(() => {
     if (phase === "success") {
-      (async () => {
-        await controls.start({
-          scale: [1, 1.08, 0.95, 1],
-          transition: { duration: 0.35, ease: "easeInOut" },
-        });
-        if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
-        await new Promise((r) => setTimeout(r, 1200));
-        onSuccessAnimDone();
-      })();
+      controls.start({
+        scale: [1, 1.08, 0.95, 1],
+        transition: { duration: 0.35, ease: "easeInOut" },
+      });
+      if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
+      setTimeout(() => onSuccessAnimDone(), 1600);
     }
     if (phase === "escaped") {
       hasRun.current = false;

@@ -60,7 +60,7 @@ export default function ThrowableBall({ phase, onThrowComplete, enabled }: Props
 
       if (navigator.vibrate) navigator.vibrate(15);
 
-      await controls.start({
+      controls.start({
         x: [0, lateralDrift * 0.5, lateralDrift * 0.2, 0],
         y: [0, targetY - 60, targetY],
         scale: [1, 0.65, 0.45],
@@ -81,7 +81,7 @@ export default function ThrowableBall({ phase, onThrowComplete, enabled }: Props
         },
       });
 
-      onThrowComplete();
+      setTimeout(() => onThrowComplete(), flightDuration * 1000 + 50);
     },
     [enabled, isReady, controls, onThrowComplete],
   );
