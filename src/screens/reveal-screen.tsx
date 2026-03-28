@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/auth-context";
 import {
   generateFriendStats,
   saveCatch,
+  checkNameTaken,
   STAT_LABELS,
   STAT_ORDER,
   STAT_MAX,
@@ -29,6 +30,11 @@ export default function RevealScreen() {
   const [flavorIdx, setFlavorIdx] = useState(0);
   const hasStarted = useRef(false);
 
+  const [nickname, setNickname] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
   useEffect(() => {
     if (!friend || !user || hasStarted.current) return;
     hasStarted.current = true;
@@ -37,9 +43,7 @@ export default function RevealScreen() {
       try {
         const generated = generateFriendStats(friend.username);
         setStats(generated);
-
-        saveCatch(user.id, friend, generated);
-
+        setNickname(friend.username);
         setState("revealing");
         setTimeout(() => setState("done"), 600);
       } catch (err) {
@@ -52,6 +56,31 @@ export default function RevealScreen() {
 
     setTimeout(run, 1800);
   }, [friend, user]);
+
+  const handleSave = async () => {
+    if (!nickname.trim() || !user || !friend || !stats) return;
+    setSaving(true);
+    setNameError("");
+
+    try {
+      const taken = await checkNameTaken(user.id, nickname.trim());
+      if (taken) {
+        setNameError("That name is already in your Frienddex! Try a different one.");
+        setSaving(false);
+        return;
+      }
+      await saveCatch(user.id, friend, stats, nickname.trim());
+      setSaved(true);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("unique") || msg.includes("duplicate")) {
+        setNameError("That name is already taken! Try a different one.");
+      } else {
+        setNameError("Something went wrong saving your catch. Please try again.");
+      }
+    }
+    setSaving(false);
+  };
 
   useEffect(() => {
     if (state !== "loading") return;
@@ -285,36 +314,80 @@ export default function RevealScreen() {
           </motion.p>
         )}
 
-        <motion.p
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 2.4 }}
-          className="mt-8 text-sm font-black uppercase tracking-wider text-green-400"
-        >
-          Added to your Frienddex!
-        </motion.p>
+        {!saved ? (
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 2.4 }}
+              className="mt-8 w-full max-w-sm"
+            >
+              <h3 className="mb-3 text-center text-sm font-bold uppercase tracking-widest text-white/40">
+                Name Your Catch
+              </h3>
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => {
+                  setNickname(e.target.value);
+                  setNameError("");
+                }}
+                maxLength={20}
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center text-lg font-bold text-white outline-none focus:border-[var(--color-primary)]"
+                placeholder="Enter a name..."
+              />
+              {nameError && (
+                <p className="mt-2 text-center text-sm font-semibold text-red-400">
+                  {nameError}
+                </p>
+              )}
+            </motion.div>
 
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.6 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/frienddex", { replace: true })}
-          className="mt-6 rounded-full bg-[var(--color-primary)] px-8 py-3 text-sm font-bold text-white"
-        >
-          View Frienddex
-        </motion.button>
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 2.6 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSave}
+              disabled={saving || !nickname.trim()}
+              className="mt-6 rounded-full bg-[var(--color-primary)] px-8 py-3 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Confirm"}
+            </motion.button>
+          </>
+        ) : (
+          <>
+            <motion.p
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-8 text-sm font-black uppercase tracking-wider text-green-400"
+            >
+              Added to your Frienddex!
+            </motion.p>
 
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.8 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/", { replace: true })}
-          className="mt-3 px-6 py-2 text-sm font-medium text-white/40"
-        >
-          Back to Scanning
-        </motion.button>
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/frienddex", { replace: true })}
+              className="mt-6 rounded-full bg-[var(--color-primary)] px-8 py-3 text-sm font-bold text-white"
+            >
+              View Frienddex
+            </motion.button>
+
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/", { replace: true })}
+              className="mt-3 px-6 py-2 text-sm font-medium text-white/40"
+            >
+              Back to Scanning
+            </motion.button>
+          </>
+        )}
       </div>
     </motion.div>
   );
