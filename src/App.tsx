@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "./contexts/auth-context";
+import { AudioProvider } from "./contexts/audio-context";
 import HomeScreen from "./screens/home-screen";
 import ScanScreen from "./screens/scan-screen";
 import CatchScreen from "./screens/catch-screen";
@@ -31,7 +32,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <AudioProvider>
+        <AppRoutes />
+      </AudioProvider>
     </AuthProvider>
   );
 }

@@ -1,34 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "../contexts/auth-context";
-import { fetchFrienddex } from "../lib/frienddex";
+import { fetchFrienddex, STAT_LABELS, STAT_ORDER, STAT_MAX } from "../lib/frienddex";
 import PokeballSpinner from "../components/pokeball-spinner";
-import PokeballSvg from "../components/pokeball-svg";
 import type { CaughtFriend, PokemonType } from "../types";
 import { TYPE_COLORS } from "../types";
 
-type SortMode = "recent" | "cp";
+const PX = "'Press Start 2P', monospace";
 
 export default function FrienddexScreen() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [friends, setFriends] = useState<CaughtFriend[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sort, setSort] = useState<SortMode>("recent");
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) return;
     fetchFrienddex(user.id).then((data) => {
+      data.sort((a, b) => a.pokedexNumber - b.pokedexNumber);
       setFriends(data);
       setLoading(false);
     });
   }, [user]);
 
-  const sorted = [...friends].sort((a, b) => {
-    if (sort === "cp") return b.cp - a.cp;
-    return new Date(b.caughtAt).getTime() - new Date(a.caughtAt).getTime();
-  });
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const row = el.children[selectedIdx] as HTMLElement | undefined;
+    row?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [selectedIdx]);
 
   if (loading) {
     return (
@@ -38,147 +41,378 @@ export default function FrienddexScreen() {
     );
   }
 
+  const selected = friends[selectedIdx] ?? null;
+  const pad3 = (n: number) => String(n).padStart(3, "0");
+
   return (
     <div
-      className="fixed inset-0 overflow-y-auto bg-[var(--color-navy)]"
-      style={{ touchAction: "pan-y", userSelect: "none" }}
+      className="fixed inset-0 flex flex-col"
+      style={{ fontFamily: PX, background: "#b8211a" }}
     >
-      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 backdrop-blur-sm"
-        style={{ background: "rgba(26,26,46,0.9)" }}
+      {/* Top bar */}
+      <div
+        className="flex shrink-0 items-center justify-between"
+        style={{ background: "#9a1a14", height: 52, padding: "0 24px" }}
       >
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate("/")}
-          className="text-sm text-white/40 hover:text-white"
+          className="text-white"
+          style={{ fontSize: 13 }}
         >
-          Back
+          ← BACK
         </motion.button>
-        <h1 className="text-lg font-black">FRIENDDEX</h1>
-        <span className="text-sm font-semibold tabular-nums text-white/30">
-          {friends.length} caught
+        <span className="text-white" style={{ fontSize: 11, opacity: 0.5 }}>
+          {friends.length} CAUGHT
         </span>
       </div>
 
-      {friends.length > 1 && (
-        <div className="flex gap-2 px-4 pb-3">
-          {(["recent", "cp"] as const).map((mode) => (
-            <motion.button
-              key={mode}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSort(mode)}
-              className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors"
+      {/* Device body — very thick red padding */}
+      <div
+        className="flex min-h-0 flex-1"
+        style={{ gap: 28, padding: 28 }}
+      >
+        {/* ═══ LEFT SCREEN: Detail ═══ */}
+        <div
+          className="flex w-[50%] shrink-0 flex-col overflow-hidden"
+          style={{
+            background: "#e8e0c0",
+            border: "5px solid #505050",
+            borderRadius: 10,
+            boxShadow:
+              "inset 0 0 12px rgba(0,0,0,0.12), 5px 5px 0 rgba(0,0,0,0.2)",
+          }}
+        >
+          {selected ? (
+            <LeftDetail friend={selected} pad3={pad3} />
+          ) : (
+            <div className="flex flex-1 items-center justify-center p-8">
+              <p
+                style={{ fontSize: 12, color: "#888", lineHeight: "2.2" }}
+                className="text-center"
+              >
+                Your Frienddex is empty. Go catch some friends!
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ═══ RIGHT PANEL: List ═══ */}
+        <div className="flex min-w-0 flex-1 flex-col" style={{ gap: 14 }}>
+          {/* Header */}
+          <div
+            className="shrink-0 text-center text-white"
+            style={{
+              fontSize: 12,
+              padding: "12px 16px",
+              background: "#5a2a2a",
+              border: "4px solid #3a1a1a",
+              borderRadius: 10,
+              letterSpacing: "0.05em",
+            }}
+          >
+            FRIENDDEX
+          </div>
+
+          {/* Selected name */}
+          {selected && (
+            <div
+              className="shrink-0 truncate text-center text-gray-900"
               style={{
-                backgroundColor:
-                  sort === mode ? "rgba(255,255,255,0.15)" : "transparent",
-                color: sort === mode ? "#fff" : "#888",
+                fontSize: 14,
+                padding: "10px 16px",
+                background: "#e0d8b8",
+                border: "4px solid #585858",
+                borderRadius: 8,
               }}
             >
-              {mode === "recent" ? "Recent" : "CP"}
-            </motion.button>
-          ))}
-        </div>
-      )}
+              {selected.username.toUpperCase()}
+            </div>
+          )}
 
-      {friends.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-6 px-8 pt-24">
-          <div className="opacity-20">
-            <PokeballSvg size={80} />
-          </div>
-          <p className="text-center text-sm leading-relaxed text-white/30">
-            Your Frienddex is empty.
-            <br />
-            Scan and capture friends to fill it up!
-          </p>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/")}
-            className="rounded-full bg-[var(--color-primary)] px-6 py-2.5 text-sm font-bold text-white"
+          {/* Scrollable list */}
+          <div
+            ref={listRef}
+            className="min-h-0 flex-1 overflow-y-auto"
+            style={{
+              background: "#283848",
+              border: "4px solid #585858",
+              borderRadius: 10,
+              touchAction: "pan-y",
+              padding: "4px 0",
+            }}
           >
-            Start Scanning
-          </motion.button>
+            {friends.length === 0 ? (
+              <div className="flex h-full items-center justify-center p-6">
+                <p
+                  style={{ fontSize: 12, color: "#8899aa" }}
+                  className="text-center"
+                >
+                  NO DATA
+                </p>
+              </div>
+            ) : (
+              friends.map((f, i) => {
+                const isSelected = i === selectedIdx;
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() => setSelectedIdx(i)}
+                    className="flex w-full items-center text-left"
+                    style={{
+                      fontSize: 11,
+                      padding: "10px 14px",
+                      gap: 10,
+                      color: isSelected ? "#fff" : "#8899aa",
+                      background: isSelected
+                        ? "#4878a8"
+                        : i % 2 === 0
+                          ? "transparent"
+                          : "rgba(255,255,255,0.03)",
+                      borderLeft: isSelected
+                        ? "5px solid #88ccff"
+                        : "5px solid transparent",
+                      transition: "background 0.15s",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: isSelected ? "#aaddff" : "#556677",
+                        fontSize: 10,
+                        minWidth: 44,
+                      }}
+                    >
+                      #{pad3(f.pokedexNumber)}
+                    </span>
+                    <span className="truncate">
+                      {f.username.toUpperCase()}
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 px-4 pb-8">
-          <AnimatePresence>
-            {sorted.map((friend, i) => (
-              <FriendCard key={friend.id} friend={friend} index={i} navigate={navigate} />
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
+      </div>
+
+      {/* Bottom bar */}
+      <div
+        className="flex shrink-0 items-center justify-center"
+        style={{ background: "#9a1a14", height: 56, gap: 28, padding: "0 24px" }}
+      >
+        <button
+          onClick={() => setSelectedIdx((p) => Math.max(0, p - 1))}
+          className="text-white active:opacity-70"
+          style={{
+            fontSize: 12,
+            padding: "8px 20px",
+            background: "#5a2a2a",
+            border: "4px solid #3a1a1a",
+            borderRadius: 8,
+          }}
+        >
+          ▲ PREV
+        </button>
+        <button
+          onClick={() =>
+            setSelectedIdx((p) => Math.min(friends.length - 1, p + 1))
+          }
+          className="text-white active:opacity-70"
+          style={{
+            fontSize: 12,
+            padding: "8px 20px",
+            background: "#5a2a2a",
+            border: "4px solid #3a1a1a",
+            borderRadius: 8,
+          }}
+        >
+          ▼ NEXT
+        </button>
+      </div>
     </div>
   );
 }
 
-function FriendCard({
+/* ─── Left Detail Panel ─── */
+
+function LeftDetail({
   friend,
-  index,
-  navigate,
+  pad3,
 }: {
   friend: CaughtFriend;
-  index: number;
-  navigate: ReturnType<typeof useNavigate>;
+  pad3: (n: number) => string;
 }) {
   const typeColor = TYPE_COLORS[friend.primaryType];
 
   return (
-    <motion.button
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      whileTap={{ scale: 0.97 }}
-      onClick={() =>
-        navigate(`/frienddex/${friend.id}`, { state: { friend } })
-      }
-      className="relative flex flex-col items-center rounded-2xl p-4 text-center"
-      style={{
-        background: `linear-gradient(145deg, ${typeColor}22 0%, rgba(20,20,40,0.9) 70%)`,
-        border: `1px solid ${typeColor}33`,
-      }}
+    <div
+      className="flex flex-1 flex-col overflow-y-auto"
+      style={{ padding: 16 }}
     >
+      {/* Type + number header */}
       <div
-        className="mb-2 h-20 w-20 overflow-hidden rounded-full border-2"
-        style={{ borderColor: typeColor }}
+        className="flex items-center justify-between"
+        style={{ fontSize: 11, color: "#505050", paddingBottom: 10 }}
       >
-        {friend.photoUrl ? (
-          <img
-            src={friend.photoUrl}
-            alt={friend.username}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div
-            className="flex h-full w-full items-center justify-center text-xl font-black text-white"
-            style={{ backgroundColor: typeColor + "66" }}
-          >
-            {friend.username.charAt(0).toUpperCase()}
-          </div>
-        )}
+        <span>{friend.primaryType.toUpperCase()} FRIEND</span>
+        <span>#{pad3(friend.pokedexNumber)}</span>
       </div>
 
-      <p className="w-full truncate text-sm font-bold text-white">
-        {friend.username}
-      </p>
-
-      <p className="mt-0.5 text-xs font-black" style={{ color: "#F8D030" }}>
-        CP {friend.cp}
-      </p>
-
-      <div className="mt-2 flex flex-wrap justify-center gap-1">
-        <TypeBadge type={friend.primaryType} />
-        {friend.secondaryType && <TypeBadge type={friend.secondaryType} />}
+      {/* Photo frame — small and centered */}
+      <div className="flex justify-center" style={{ paddingBottom: 12 }}>
+        <div
+          className="overflow-hidden"
+          style={{
+            width: 110,
+            height: 110,
+            background: "#f0e8d0",
+            border: "5px solid #888",
+            borderRadius: 8,
+            boxShadow: "inset 3px 3px 0 #ccc, inset -3px -3px 0 #aaa",
+          }}
+        >
+          {friend.photoUrl ? (
+            <img
+              src={friend.photoUrl}
+              alt={friend.username}
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+          ) : (
+            <div
+              className="flex h-full w-full items-center justify-center text-white"
+              style={{
+                backgroundColor: typeColor + "66",
+                fontFamily: PX,
+                fontSize: 36,
+              }}
+            >
+              {friend.username.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
       </div>
-    </motion.button>
+
+      {/* Description box */}
+      <div
+        style={{
+          fontSize: 9,
+          lineHeight: "2",
+          color: "#404040",
+          background: "#f0e8d0",
+          border: "4px solid #888",
+          borderRadius: 6,
+          padding: "12px 14px",
+          marginBottom: 12,
+        }}
+      >
+        {friend.description}
+      </div>
+
+      {/* Type badges + CP */}
+      <div
+        className="flex items-center justify-between"
+        style={{ marginBottom: 12, padding: "0 2px" }}
+      >
+        <div className="flex" style={{ gap: 8 }}>
+          <TypeBadge type={friend.primaryType} />
+          {friend.secondaryType && <TypeBadge type={friend.secondaryType} />}
+        </div>
+        <span style={{ fontSize: 11, color: "#c8a830", fontFamily: PX }}>
+          CP {friend.cp}
+        </span>
+      </div>
+
+      {/* Stats */}
+      <div
+        style={{
+          background: "#f0e8d0",
+          border: "4px solid #888",
+          borderRadius: 6,
+          padding: "10px 14px",
+          marginBottom: 12,
+        }}
+      >
+        {STAT_ORDER.map((key) => {
+          const value = (friend.stats as Record<string, number>)[key] ?? 0;
+          const pct = (value / STAT_MAX) * 100;
+          return (
+            <div
+              key={key}
+              className="flex items-center"
+              style={{ gap: 8, padding: "5px 0" }}
+            >
+              <span
+                style={{
+                  fontSize: 8,
+                  color: "#606060",
+                  minWidth: 48,
+                  fontFamily: PX,
+                }}
+              >
+                {STAT_LABELS[key]}
+              </span>
+              <div
+                className="flex-1"
+                style={{ height: 7, background: "#c8c0a0", borderRadius: 2 }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${pct}%`,
+                    background: typeColor,
+                    borderRadius: 2,
+                  }}
+                />
+              </div>
+              <span
+                style={{
+                  fontSize: 8,
+                  color: "#404040",
+                  minWidth: 28,
+                  textAlign: "right",
+                  fontFamily: PX,
+                }}
+              >
+                {value}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Flavor text */}
+      {friend.flavorText && (
+        <p
+          className="text-center italic"
+          style={{
+            fontSize: 8,
+            color: "#807060",
+            lineHeight: "1.9",
+            padding: "4px 8px",
+          }}
+        >
+          &ldquo;{friend.flavorText}&rdquo;
+        </p>
+      )}
+    </div>
   );
 }
 
 function TypeBadge({ type }: { type: PokemonType }) {
   return (
     <span
-      className="inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
-      style={{ backgroundColor: TYPE_COLORS[type] }}
+      className="inline-block text-white"
+      style={{
+        fontSize: 8,
+        fontFamily: PX,
+        backgroundColor: TYPE_COLORS[type],
+        letterSpacing: "0.05em",
+        padding: "5px 10px",
+        borderRadius: 4,
+      }}
     >
-      {type}
+      {type.toUpperCase()}
     </span>
   );
 }
