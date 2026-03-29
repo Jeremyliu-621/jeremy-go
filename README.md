@@ -5,7 +5,60 @@
 
 ## How we built it
 
-- Frontend: React + TypeScript with Vite for fast dev and builds.
+- Frontend: React + TypeScript with Vite for fast dev and builds.[Verse 1]
+Hold me close 'til I get up
+Time is barely on our side
+I don't wanna waste what's left
+The storms we chase are leadin' us
+And love is all we'll ever trust, yeah
+No, I don't wanna waste what's left
+
+[Chorus]
+And on and on we'll go
+Through the wastelands, through the highways
+'Til my shadow turns to sun rays
+And on and on we'll go
+Through the wastelands, through the highways
+And on and on we'll go
+
+[Drop]
+
+[Bridge]
+Oh, on we'll go
+
+[Verse 2]
+Finding life along the way
+Melodies we haven't played
+No, I don't want no rest (Yeah, yeah)
+Echoing around these walls
+Fighting to create a song (Yeah)
+I don't wanna miss a beat
+
+[Chorus]
+And on and on we'll go
+Through the wastelands, through the highways
+'Til my shadow turns to sun rays
+And on and on we'll go
+Through the wastelands, through the highways
+And on and on we'll go
+
+[Drop]
+
+[Bridge]
+And we'll grow in number
+Fueled by thunder, see the horizon
+Turn us to thousands
+And we'll grow in number
+Fueled by thunder, see the horizon
+Turn us to thousands
+
+[Chorus]
+And on and on we'll go
+Through the wastelands, through the highways
+'Til my shadow turns to sunrays
+And on and on we'll go
+Through the wastelands, through the highways
+And on and on we'll go
 - Mobile‑first PWA with offline caching for scan‑and‑collect on the go.
 - Camera‑based QR scanning using browser APIs for instant captures.
 - Local persistence for collections; sync‑ready hooks for a future backend.
